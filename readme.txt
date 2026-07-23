@@ -3,7 +3,7 @@ Contributors: atx
 Tags: navigation, menus, visual builder, live preview
 Requires at least: 6.0
 Requires PHP: 8.1
-Stable tag: 1.1.9
+Stable tag: 1.2.0
 License: GPLv2 or later
 
 Edit any registered WordPress menu location in a live preview of the real website.
@@ -18,6 +18,14 @@ Features:
 * Select any registered Header, Footer, or custom menu location.
 * Preview the menu where the active theme actually renders it.
 * Edit, add, delete, and reorder WordPress menu items.
+* Stage the entire menu and save it atomically in one operation.
+* Undo and redo structural, content, option, and media changes.
+* Recover unsaved drafts after a refresh, closed tab, or browser crash.
+* Check menu health for weak labels, placeholders, duplicates, deep nesting,
+  missing content, unpublished content, and unreachable external links.
+* Restore any of the latest 10 saved revisions.
+* Detect another administrator's newer edits before overwriting them.
+* Duplicate complete branches or bulk move, duplicate, copy, and delete items.
 * Preview unsaved changes automatically.
 * Remember the selected location and preview device across refreshes.
 * Fixed Desktop, Tablet, and Mobile preview widths with readable scaling.
@@ -61,6 +69,17 @@ Updates are read from GitHub Releases in `siko001/visual-nav-builder`. Each
 release must include an asset named `visual-nav-builder.zip`.
 
 == Changelog ==
+
+= 1.2.0 =
+
+* Added transaction-backed staged saving so adds, deletes, item fields, ACF values, icons, sliders, and brands are committed together.
+* Added Undo and Redo for menu structure, labels, destinations, classes, options, media, and menu naming.
+* Added automatic browser crash and refresh recovery for unsaved menu drafts.
+* Added Menu Health diagnostics for labels, placeholder links, duplicate destinations, deep nesting, deleted/unpublished content, missing terms, and external link failures.
+* Added a 10-entry revision history with one-click restoration and a safety revision of the replaced menu.
+* Added optimistic edit-conflict protection with Reload Latest and explicit Overwrite choices.
+* Added complete-branch duplication plus bulk selection, movement, duplication, deletion, and copying to another registered menu location.
+* Kept all new features synchronized between the standalone plugin and the ATX theme module.
 
 = 1.1.9 =
 

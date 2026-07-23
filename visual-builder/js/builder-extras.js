@@ -8,7 +8,7 @@
 	let VB = window.AtxVB;
 
 	// Store extras data per item ID
-	VB.extras = {};
+	VB.extras = VB.extras || {};
 
 	// ── Load extras from server ──
 	let origOpenEditor = VB.openEditor;
@@ -72,24 +72,8 @@
 		$('#atx-vb-slider-section').toggle(showExtras && showSlider);
 		$('#atx-vb-brands-section').toggle(showExtras && showBrands);
 
-		if (!showExtras) return;
-
-		// Load extras if not cached
-		if (!VB.extras[id]) {
-			$.ajax({
-				url: atxVB.ajaxUrl,
-				method: 'POST',
-				data: { action: 'atx_vb_get_extras', _wpnonce: atxVB.nonce, menu_location: VB.menuLocation, item_id: id },
-				success: function (res) {
-					if (res.success) {
-						VB.extras[id] = res.data;
-						renderExtras(id);
-					}
-				}
-			});
-		} else {
-			renderExtras(id);
-		}
+		VB.extras[id] = VB.extras[id] || item.extras || {};
+		item.extras = VB.extras[id];
 
 		// Custom icon
 		let isCustom = item.icon === 'custom';
@@ -98,6 +82,9 @@
 			renderCustomIcon(VB.extras[id].custom_icon_url || '');
 			$('#atx-vb-edit-icon-custom-id').val(VB.extras[id].custom_icon_id || '');
 		}
+
+		if (!showExtras) return;
+		renderExtras(id);
 	};
 
 	function renderExtras(id) {
@@ -308,16 +295,10 @@
 			$('#atx-vb-remove-icon').show();
 
 			let id = parseInt($('#atx-vb-edit-id').val(), 10);
-			// Save custom icon to post meta
-			$.ajax({
-				url: atxVB.ajaxUrl,
-				method: 'POST',
-				data: { action: 'atx_vb_save_custom_icon', _wpnonce: atxVB.nonce, menu_location: VB.menuLocation, item_id: id, icon_id: imgId }
-			});
-
-			VB.markDirty();
-			clearTimeout(VB._extrasSaveTimer);
-			VB._extrasSaveTimer = setTimeout(() => VB.refreshPreview(), 600);
+			if (!VB.extras[id]) VB.extras[id] = {};
+			VB.extras[id].custom_icon_id = imgId;
+			VB.extras[id].custom_icon_url = imgUrl;
+			saveExtras(id, true);
 		});
 	});
 
@@ -327,11 +308,10 @@
 		$(this).hide();
 
 		let id = parseInt($('#atx-vb-edit-id').val(), 10);
-		$.ajax({
-			url: atxVB.ajaxUrl,
-			method: 'POST',
-			data: { action: 'atx_vb_save_custom_icon', _wpnonce: atxVB.nonce, menu_location: VB.menuLocation, item_id: id, icon_id: 0 }
-		});
+		if (!VB.extras[id]) VB.extras[id] = {};
+		VB.extras[id].custom_icon_id = 0;
+		VB.extras[id].custom_icon_url = '';
+		saveExtras(id, true);
 	});
 
 	function renderCustomIcon(url) {
@@ -344,30 +324,17 @@
 		}
 	}
 
-	// ── Save extras to server ──
+	// ── Stage extras with the rest of the menu ──
 
 	function saveExtras(itemId, refreshPreview) {
 		let data = VB.extras[itemId] || {};
-
-		$.ajax({
-			url: atxVB.ajaxUrl,
-			method: 'POST',
-			data: {
-				action: 'atx_vb_save_extras',
-				_wpnonce: atxVB.nonce,
-				menu_location: VB.menuLocation,
-				item_id: itemId,
-				slider_enabled: data.slider_enabled || '',
-				slider_items: JSON.stringify(data.slider_items || []),
-				brands_enabled: data.brands_enabled || '',
-				brand_items: JSON.stringify(data.brand_items || []),
-			},
-			success: function () {
-				VB.markDirty();
-				$('#atx-vb-status').text('Saved (click Refresh to preview)').css('color', '#8c8');
-				if (refreshPreview) VB.refreshPreview();
-			}
-		});
+		let item = VB.getItem(itemId);
+		if (item) item.extras = data;
+		VB.markDirty();
+		clearTimeout(VB._extrasPreviewTimer);
+		VB._extrasPreviewTimer = setTimeout(function () {
+			VB.refreshPreview();
+		}, refreshPreview ? 0 : 350);
 	}
 
 })(jQuery);

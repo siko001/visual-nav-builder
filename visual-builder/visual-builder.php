@@ -44,6 +44,7 @@ class Atx_Nav_Visual_Builder {
 		add_filter( 'wp_get_nav_menu_items', array( $this, 'filter_frontend_preview_items' ), PHP_INT_MAX, 3 );
 		add_filter( 'wp_nav_menu', array( $this, 'mark_frontend_preview_menu' ), PHP_INT_MAX, 2 );
 		add_filter( 'acf/load_value', array( $this, 'filter_frontend_preview_acf_value' ), PHP_INT_MAX, 3 );
+		add_filter( 'get_post_metadata', array( $this, 'filter_frontend_preview_meta' ), PHP_INT_MAX, 5 );
 		add_action( 'wp_ajax_' . self::PREVIEW_ACTION, array( $this, 'render_preview_page' ) );
 		add_action( 'wp_ajax_atx_vb_load', array( $this, 'ajax_load' ) );
 		add_action( 'wp_ajax_atx_vb_search_items', array( $this, 'ajax_search_items' ) );
@@ -55,6 +56,9 @@ class Atx_Nav_Visual_Builder {
 		add_action( 'wp_ajax_atx_vb_get_extras', array( $this, 'ajax_get_extras' ) );
 		add_action( 'wp_ajax_atx_vb_save_extras', array( $this, 'ajax_save_extras' ) );
 		add_action( 'wp_ajax_atx_vb_save_custom_icon', array( $this, 'ajax_save_custom_icon' ) );
+		add_action( 'wp_ajax_atx_vb_health_check', array( $this, 'ajax_health_check' ) );
+		add_action( 'wp_ajax_atx_vb_revisions', array( $this, 'ajax_revisions' ) );
+		add_action( 'wp_ajax_atx_vb_copy_items', array( $this, 'ajax_copy_items' ) );
 	}
 
 	/**
@@ -101,7 +105,7 @@ class Atx_Nav_Visual_Builder {
 		wp_enqueue_script( 'jquery-ui-droppable' );
 
 		$style_deps = array();
-		foreach ( array( 'layout', 'tree', 'editor', 'help', 'preview' ) as $style ) {
+		foreach ( array( 'layout', 'tree', 'editor', 'help', 'preview', 'workspace' ) as $style ) {
 			$handle = 'atx-vb-' . $style;
 			wp_enqueue_style( $handle, $base . '/css/builder-' . $style . '.css', $style_deps, $ver );
 			$style_deps = array( $handle );
@@ -133,6 +137,7 @@ class Atx_Nav_Visual_Builder {
 			'actions' => array( 'atx-vb-core' ),
 			'extras'  => array( 'atx-vb-core', 'atx-vb-editor', 'atx-nav-admin-picker' ),
 			'options' => array( 'atx-vb-core', 'atx-vb-editor', 'atx-vb-extras' ),
+			'workspace' => array( 'atx-vb-core', 'atx-vb-tree', 'atx-vb-editor', 'atx-vb-preview', 'atx-vb-actions', 'atx-vb-extras', 'atx-vb-options' ),
 		);
 
 		foreach ( $js_files as $file => $deps ) {
@@ -185,25 +190,9 @@ class Atx_Nav_Visual_Builder {
 			wp_send_json_error( 'No menu assigned to ' . $menu_location );
 		}
 
-		$menu       = wp_get_nav_menu_object( $menu_id );
-		$menu_items = wp_get_nav_menu_items( $menu_id );
-		$items = array();
-
-		foreach ( $menu_items as $item ) {
-			$items[] = array(
-				'id'        => $item->ID,
-				'title'     => wp_specialchars_decode( $item->title, ENT_QUOTES ),
-				'url'       => $item->url,
-				'parent_id' => intval( $item->menu_item_parent ),
-				'position'  => $item->menu_order,
-				'classes'   => array_filter( (array) $item->classes ),
-				'type'      => $item->type,
-				'object'    => $item->object,
-				'object_id' => $item->object_id,
-				'acf'       => self::get_acf_menu_item_values( $item->ID ),
-				'icon'      => get_post_meta( $item->ID, '_atx_nav_icon', true ) ?: '',
-			);
-		}
+		$menu  = wp_get_nav_menu_object( $menu_id );
+		$items = self::get_builder_items( $menu_id );
+		$hash  = self::get_menu_state_hash( $menu_id, $menu ? $menu->name : '', $items );
 
 		wp_send_json_success( array(
 			'items'         => $items,
@@ -211,6 +200,8 @@ class Atx_Nav_Visual_Builder {
 			'menu_name'     => $menu ? $menu->name : '',
 			'menu_location' => $menu_location,
 			'extensions'    => self::get_extensions_for_location( $menu_location ),
+			'base_hash'     => $hash,
+			'revisions'     => self::get_revision_summaries( $menu_id ),
 		) );
 	}
 
@@ -221,7 +212,7 @@ class Atx_Nav_Visual_Builder {
 		if ( ! current_user_can( Atx_Nav_Menu_Config::get( 'capability' ) ) ) wp_send_json_error();
 
 		$items = json_decode( wp_unslash( $_POST['items'] ?? '[]' ), true );
-		if ( empty( $items ) ) wp_send_json_error( 'No items.' );
+		if ( ! is_array( $items ) ) wp_send_json_error( 'Invalid menu data.' );
 
 		$menu_location = self::get_requested_menu_location();
 		$menu_id       = self::get_menu_id_for_location( $menu_location );
@@ -232,8 +223,22 @@ class Atx_Nav_Visual_Builder {
 			wp_send_json_error( $required_error );
 		}
 
-		$menu      = wp_get_nav_menu_object( $menu_id );
-		$menu_name = sanitize_text_field( wp_unslash( $_POST['menu_name'] ?? '' ) );
+		$menu          = wp_get_nav_menu_object( $menu_id );
+		$menu_name     = sanitize_text_field( wp_unslash( $_POST['menu_name'] ?? '' ) );
+		$base_hash     = sanitize_text_field( wp_unslash( $_POST['base_hash'] ?? '' ) );
+		$force         = ! empty( $_POST['force'] );
+		$current_items = self::get_builder_items( $menu_id );
+		$current_name  = $menu ? $menu->name : '';
+		$current_hash  = self::get_menu_state_hash( $menu_id, $current_name, $current_items );
+
+		if ( ! $force && $base_hash && ! hash_equals( $current_hash, $base_hash ) ) {
+			wp_send_json_error( array(
+				'code'         => 'edit_conflict',
+				'message'      => __( 'This menu changed after you opened it. Reload the latest version or overwrite it with your changes.', 'atx_theme' ),
+				'current_hash' => $current_hash,
+			), 409 );
+		}
+
 		if ( '' === $menu_name && $menu ) {
 			$menu_name = $menu->name;
 		}
@@ -242,45 +247,349 @@ class Atx_Nav_Visual_Builder {
 			wp_send_json_error( 'Menu name cannot be empty.' );
 		}
 
-		if ( ! $menu || $menu->name !== $menu_name ) {
-			$updated_menu = wp_update_nav_menu_object( $menu_id, array(
-				'menu-name' => $menu_name,
-			) );
-
-			if ( is_wp_error( $updated_menu ) ) {
-				wp_send_json_error( $updated_menu->get_error_message() );
-			}
+		$result = self::apply_menu_state( $menu_id, $menu_location, $menu_name, $items );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
 		}
 
-		foreach ( $items as $item ) {
-			wp_update_nav_menu_item( $menu_id, $item['id'], array(
-				'menu-item-title'     => sanitize_text_field( $item['title'] ),
-				'menu-item-url'       => esc_url_raw( $item['url'] ),
-				'menu-item-parent-id' => intval( $item['parent_id'] ),
-				'menu-item-position'  => intval( $item['position'] ),
-				'menu-item-status'    => 'publish',
-				'menu-item-type'      => sanitize_key( $item['type'] ?? 'custom' ),
-				'menu-item-object'    => sanitize_key( $item['object'] ?? 'custom' ),
-				'menu-item-object-id' => absint( $item['object_id'] ?? $item['id'] ),
-				'menu-item-classes'   => implode( ' ', array_map( 'sanitize_html_class', $item['classes'] ?? array() ) ),
-			) );
-
-			if ( isset( $item['icon'] ) ) {
-				update_post_meta( $item['id'], '_atx_nav_icon', sanitize_text_field( $item['icon'] ) );
-			}
-
-			if ( isset( $item['acf'] ) && is_array( $item['acf'] ) ) {
-				self::save_acf_menu_item_values( $item['id'], $item['acf'] );
-			}
+		$changed = ! hash_equals( $current_hash, $result['hash'] );
+		if ( $changed ) {
+			self::record_revision( $menu_id, $menu_location, $current_name, $current_items, __( 'Before save', 'atx_theme' ) );
 		}
-
-		// Also save to preview transient
-		set_transient( self::get_preview_transient_key( $menu_location ), $items, 300 );
 
 		wp_send_json_success( array(
-			'message'   => 'Saved.',
-			'menu_name' => $menu_name,
+			'message'    => 'Saved.',
+			'menu_name'  => $result['menu_name'],
+			'items'      => $result['items'],
+			'base_hash'  => $result['hash'],
+			'revisions'  => self::get_revision_summaries( $menu_id ),
+			'id_map'     => $result['id_map'],
 		) );
+	}
+
+	private static function get_builder_items( $menu_id ) {
+		$items = array();
+
+		foreach ( (array) wp_get_nav_menu_items( $menu_id ) as $item ) {
+			$items[] = array(
+				'id'        => intval( $item->ID ),
+				'title'     => wp_specialchars_decode( $item->title, ENT_QUOTES ),
+				'url'       => $item->url,
+				'parent_id' => intval( $item->menu_item_parent ),
+				'position'  => intval( $item->menu_order ),
+				'classes'   => array_values( array_filter( (array) $item->classes ) ),
+				'type'      => $item->type,
+				'object'    => $item->object,
+				'object_id' => intval( $item->object_id ),
+				'acf'       => self::get_acf_menu_item_values( $item->ID ),
+				'icon'      => get_post_meta( $item->ID, '_atx_nav_icon', true ) ?: '',
+				'extras'    => self::get_item_extras( $item->ID ),
+				'is_new'    => false,
+			);
+		}
+
+		return $items;
+	}
+
+	private static function get_item_extras( $item_id ) {
+		$slider_items = get_post_meta( $item_id, '_atx_nav_slider_items', true );
+		$slider_items = is_array( $slider_items ) ? $slider_items : array();
+		foreach ( $slider_items as &$slide ) {
+			$slide['image_url'] = ! empty( $slide['image'] ) ? wp_get_attachment_image_url( $slide['image'], 'thumbnail' ) : '';
+		}
+		unset( $slide );
+
+		$brand_items = get_post_meta( $item_id, '_atx_nav_brand_items', true );
+		$brand_items = is_array( $brand_items ) ? $brand_items : array();
+		foreach ( $brand_items as &$brand ) {
+			$brand['logo_url'] = ! empty( $brand['logo'] ) ? wp_get_attachment_image_url( $brand['logo'], 'thumbnail' ) : '';
+		}
+		unset( $brand );
+
+		$custom_icon_id = absint( get_post_meta( $item_id, '_atx_nav_icon_custom', true ) );
+
+		return array(
+			'slider_enabled'  => get_post_meta( $item_id, '_atx_nav_slider_enabled', true ) ? '1' : '',
+			'slider_items'    => $slider_items,
+			'brands_enabled'  => get_post_meta( $item_id, '_atx_nav_brands_enabled', true ) ? '1' : '',
+			'brand_items'     => $brand_items,
+			'custom_icon_id'  => $custom_icon_id,
+			'custom_icon_url' => $custom_icon_id ? ( wp_get_attachment_image_url( $custom_icon_id, 'thumbnail' ) ?: '' ) : '',
+		);
+	}
+
+	private static function sanitize_item_extras( $extras ) {
+		$extras = is_array( $extras ) ? $extras : array();
+
+		$slides = array();
+		foreach ( (array) ( $extras['slider_items'] ?? array() ) as $slide ) {
+			$slides[] = array(
+				'image'          => absint( $slide['image'] ?? 0 ),
+				'link'           => esc_url_raw( $slide['link'] ?? '' ),
+				'badge'          => sanitize_text_field( $slide['badge'] ?? '' ),
+				'title'          => sanitize_text_field( $slide['title'] ?? '' ),
+				'description'    => sanitize_text_field( $slide['description'] ?? '' ),
+				'original_price' => sanitize_text_field( $slide['original_price'] ?? '' ),
+				'sale_price'     => sanitize_text_field( $slide['sale_price'] ?? '' ),
+			);
+		}
+
+		$brands = array();
+		foreach ( (array) ( $extras['brand_items'] ?? array() ) as $brand ) {
+			$brands[] = array(
+				'logo' => absint( $brand['logo'] ?? 0 ),
+				'name' => sanitize_text_field( $brand['name'] ?? '' ),
+				'link' => esc_url_raw( $brand['link'] ?? '' ),
+			);
+		}
+
+		return array(
+			'slider_enabled' => ! empty( $extras['slider_enabled'] ) ? '1' : '',
+			'slider_items'   => $slides,
+			'brands_enabled' => ! empty( $extras['brands_enabled'] ) ? '1' : '',
+			'brand_items'    => $brands,
+			'custom_icon_id' => absint( $extras['custom_icon_id'] ?? 0 ),
+		);
+	}
+
+	private static function save_item_extras( $item_id, $extras ) {
+		$extras = self::sanitize_item_extras( $extras );
+
+		update_post_meta( $item_id, '_atx_nav_slider_enabled', $extras['slider_enabled'] );
+		update_post_meta( $item_id, '_atx_nav_slider_items', $extras['slider_items'] );
+		update_post_meta( $item_id, '_atx_nav_brands_enabled', $extras['brands_enabled'] );
+		update_post_meta( $item_id, '_atx_nav_brand_items', $extras['brand_items'] );
+		update_post_meta( $item_id, '_atx_nav_icon_custom', $extras['custom_icon_id'] );
+	}
+
+	private static function sanitize_builder_items( $items ) {
+		$clean = array();
+		$seen  = array();
+
+		foreach ( (array) $items as $index => $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$id = intval( $item['id'] ?? 0 );
+			if ( ! $id || isset( $seen[ (string) $id ] ) ) {
+				$id = 2000000000 + $index;
+			}
+			$seen[ (string) $id ] = true;
+
+			$clean[] = array(
+				'id'        => $id,
+				'title'     => sanitize_text_field( $item['title'] ?? '' ),
+				'url'       => esc_url_raw( $item['url'] ?? '#' ) ?: '#',
+				'parent_id' => intval( $item['parent_id'] ?? 0 ),
+				'position'  => max( 1, intval( $item['position'] ?? ( $index + 1 ) ) ),
+				'classes'   => array_values( array_filter( array_map( 'sanitize_html_class', (array) ( $item['classes'] ?? array() ) ) ) ),
+				'type'      => sanitize_key( $item['type'] ?? 'custom' ) ?: 'custom',
+				'object'    => sanitize_key( $item['object'] ?? 'custom' ) ?: 'custom',
+				'object_id' => absint( $item['object_id'] ?? 0 ),
+				'acf'       => is_array( $item['acf'] ?? null ) ? $item['acf'] : array(),
+				'icon'      => sanitize_text_field( $item['icon'] ?? '' ),
+				'extras'    => self::sanitize_item_extras( $item['extras'] ?? array() ),
+				'is_new'    => ! empty( $item['is_new'] ),
+			);
+		}
+
+		usort( $clean, function( $a, $b ) {
+			return $a['position'] <=> $b['position'];
+		} );
+
+		return $clean;
+	}
+
+	private static function get_menu_item_update_args( $item, $parent_id ) {
+		$args = array(
+			'menu-item-title'     => wp_slash( $item['title'] ),
+			'menu-item-parent-id' => intval( $parent_id ),
+			'menu-item-position'  => intval( $item['position'] ),
+			'menu-item-status'    => 'publish',
+			'menu-item-classes'   => implode( ' ', $item['classes'] ),
+			'menu-item-type'      => $item['type'],
+			'menu-item-object'    => $item['object'],
+		);
+
+		if ( in_array( $item['type'], array( 'post_type', 'taxonomy' ), true ) && $item['object_id'] ) {
+			$args['menu-item-object-id'] = $item['object_id'];
+		} else {
+			$args['menu-item-type']   = 'custom';
+			$args['menu-item-object'] = 'custom';
+			$args['menu-item-url']    = $item['url'] ?: '#';
+		}
+
+		return $args;
+	}
+
+	private static function apply_menu_state( $menu_id, $menu_location, $menu_name, $items ) {
+		global $wpdb;
+
+		$items         = self::sanitize_builder_items( $items );
+		$current_items = (array) wp_get_nav_menu_items( $menu_id );
+		$current_ids   = array();
+		foreach ( $current_items as $current_item ) {
+			$current_ids[ intval( $current_item->ID ) ] = true;
+		}
+
+		$transaction_started = false !== $wpdb->query( 'START TRANSACTION' );
+		$menu = wp_get_nav_menu_object( $menu_id );
+		if ( ! $menu || $menu->name !== $menu_name ) {
+			$updated_menu = wp_update_nav_menu_object( $menu_id, array( 'menu-name' => $menu_name ) );
+			if ( is_wp_error( $updated_menu ) ) {
+				self::rollback_menu_save( $transaction_started, $menu_id, array_keys( $current_ids ), array() );
+				return $updated_menu;
+			}
+		}
+
+		$id_map      = array();
+		$created_ids = array();
+
+		foreach ( $items as $item ) {
+			$client_id = intval( $item['id'] );
+			$is_new    = $item['is_new'] || ! isset( $current_ids[ $client_id ] );
+			if ( ! $is_new ) {
+				continue;
+			}
+
+			$args   = self::get_menu_item_update_args( $item, 0 );
+			$new_id = wp_update_nav_menu_item( $menu_id, 0, $args );
+			if ( is_wp_error( $new_id ) ) {
+				self::rollback_menu_save( $transaction_started, $menu_id, array_keys( $current_ids ), $created_ids );
+				return $new_id;
+			}
+
+			$id_map[ (string) $client_id ] = intval( $new_id );
+			$created_ids[]                 = intval( $new_id );
+		}
+
+		$saved_ids = array();
+		foreach ( $items as $item ) {
+			$client_id = intval( $item['id'] );
+			$item_id   = intval( $id_map[ (string) $client_id ] ?? $client_id );
+			$parent_id = intval( $item['parent_id'] );
+			$parent_id = intval( $id_map[ (string) $parent_id ] ?? $parent_id );
+
+			$updated_id = wp_update_nav_menu_item(
+				$menu_id,
+				$item_id,
+				self::get_menu_item_update_args( $item, $parent_id )
+			);
+
+			if ( is_wp_error( $updated_id ) ) {
+				self::rollback_menu_save( $transaction_started, $menu_id, array_keys( $current_ids ), $created_ids );
+				return $updated_id;
+			}
+
+			$saved_ids[ $item_id ] = true;
+			update_post_meta( $item_id, '_atx_nav_icon', $item['icon'] );
+			self::save_item_extras( $item_id, $item['extras'] );
+			self::save_acf_menu_item_values( $item_id, $item['acf'] );
+		}
+
+		foreach ( $current_ids as $current_id => $_unused ) {
+			if ( ! isset( $saved_ids[ $current_id ] ) ) {
+				if ( ! wp_delete_post( $current_id, true ) ) {
+					self::rollback_menu_save( $transaction_started, $menu_id, array_keys( $current_ids ), $created_ids );
+					return new WP_Error( 'atx_vb_delete_failed', __( 'The menu could not be saved completely, so no changes were applied.', 'atx_theme' ) );
+				}
+			}
+		}
+
+		if ( $transaction_started && false === $wpdb->query( 'COMMIT' ) ) {
+			self::rollback_menu_save( true, $menu_id, array_keys( $current_ids ), $created_ids );
+			return new WP_Error( 'atx_vb_commit_failed', __( 'The menu save could not be committed.', 'atx_theme' ) );
+		}
+
+		$saved_items = self::get_builder_items( $menu_id );
+		$hash        = self::get_menu_state_hash( $menu_id, $menu_name, $saved_items );
+
+		set_transient( self::get_preview_transient_key( $menu_location ), $saved_items, 300 );
+
+		return array(
+			'menu_name' => $menu_name,
+			'items'     => $saved_items,
+			'hash'      => $hash,
+			'id_map'    => $id_map,
+		);
+	}
+
+	private static function rollback_menu_save( $transaction_started, $menu_id, $existing_ids, $created_ids ) {
+		global $wpdb;
+
+		if ( $transaction_started ) {
+			$wpdb->query( 'ROLLBACK' );
+		} else {
+			foreach ( $created_ids as $created_id ) {
+				wp_delete_post( $created_id, true );
+			}
+		}
+
+		clean_term_cache( $menu_id, 'nav_menu' );
+		foreach ( array_unique( array_merge( (array) $existing_ids, (array) $created_ids ) ) as $item_id ) {
+			clean_post_cache( $item_id );
+		}
+	}
+
+	private static function get_menu_state_hash( $menu_id, $menu_name = '', $items = null ) {
+		if ( null === $items ) {
+			$items = self::get_builder_items( $menu_id );
+		}
+		if ( '' === $menu_name ) {
+			$menu      = wp_get_nav_menu_object( $menu_id );
+			$menu_name = $menu ? $menu->name : '';
+		}
+
+		return hash( 'sha256', wp_json_encode( array(
+			'menu_name' => (string) $menu_name,
+			'items'     => array_values( (array) $items ),
+		) ) );
+	}
+
+	private static function get_revisions_option_key( $menu_id ) {
+		return 'atx_vb_revisions_' . absint( $menu_id );
+	}
+
+	private static function get_revisions( $menu_id ) {
+		$revisions = get_option( self::get_revisions_option_key( $menu_id ), array() );
+		return is_array( $revisions ) ? $revisions : array();
+	}
+
+	private static function get_revision_summaries( $menu_id ) {
+		return array_map( function( $revision ) {
+			return array(
+				'id'         => $revision['id'] ?? '',
+				'created_at' => $revision['created_at'] ?? '',
+				'user_name'  => $revision['user_name'] ?? '',
+				'note'       => $revision['note'] ?? '',
+				'item_count' => count( (array) ( $revision['items'] ?? array() ) ),
+			);
+		}, self::get_revisions( $menu_id ) );
+	}
+
+	private static function record_revision( $menu_id, $menu_location, $menu_name, $items, $note ) {
+		$revisions = self::get_revisions( $menu_id );
+		$hash      = self::get_menu_state_hash( $menu_id, $menu_name, $items );
+
+		if ( ! empty( $revisions[0]['hash'] ) && hash_equals( $revisions[0]['hash'], $hash ) ) {
+			return;
+		}
+
+		$user = wp_get_current_user();
+		array_unshift( $revisions, array(
+			'id'            => wp_generate_uuid4(),
+			'created_at'    => current_time( 'mysql' ),
+			'user_id'       => get_current_user_id(),
+			'user_name'     => $user->display_name ?: $user->user_login,
+			'note'          => sanitize_text_field( $note ),
+			'menu_location' => sanitize_key( $menu_location ),
+			'menu_name'     => sanitize_text_field( $menu_name ),
+			'items'         => array_values( (array) $items ),
+			'hash'          => $hash,
+		) );
+
+		update_option( self::get_revisions_option_key( $menu_id ), array_slice( $revisions, 0, 10 ), false );
 	}
 
 	// ── AJAX: Add new item ──
@@ -466,6 +775,263 @@ class Atx_Nav_Visual_Builder {
 		return false;
 	}
 
+	public function ajax_health_check() {
+		check_ajax_referer( 'atx_vb', '_wpnonce' );
+		if ( ! current_user_can( Atx_Nav_Menu_Config::get( 'capability' ) ) ) wp_send_json_error();
+
+		$items = json_decode( wp_unslash( $_POST['items'] ?? '[]' ), true );
+		if ( ! is_array( $items ) ) {
+			wp_send_json_error( 'Invalid menu data.' );
+		}
+
+		$items    = self::sanitize_builder_items( $items );
+		$lookup   = array();
+		$warnings = array();
+		$urls     = array();
+
+		foreach ( $items as $item ) {
+			$lookup[ intval( $item['id'] ) ] = $item;
+		}
+
+		foreach ( $items as $item ) {
+			$item_id = intval( $item['id'] );
+			$title   = trim( (string) $item['title'] );
+			$url     = trim( (string) $item['url'] );
+
+			if ( '' === $title ) {
+				$warnings[] = self::make_health_warning( 'error', 'empty_title', $item, __( 'This item has no navigation label.', 'atx_theme' ) );
+			} elseif ( in_array( strtolower( $title ), array( 'click here', 'learn more', 'read more', 'link' ), true ) ) {
+				$warnings[] = self::make_health_warning( 'warning', 'weak_label', $item, __( 'Use a more descriptive navigation label.', 'atx_theme' ) );
+			}
+
+			if ( '' === $url || '#' === $url ) {
+				$warnings[] = self::make_health_warning( 'warning', 'placeholder_url', $item, __( 'This item uses a placeholder link (#).', 'atx_theme' ) );
+			}
+
+			$depth   = 0;
+			$parent  = intval( $item['parent_id'] );
+			$visited = array( $item_id => true );
+			while ( $parent && isset( $lookup[ $parent ] ) && ! isset( $visited[ $parent ] ) ) {
+				$visited[ $parent ] = true;
+				$depth++;
+				$parent = intval( $lookup[ $parent ]['parent_id'] );
+			}
+			if ( $depth > 3 ) {
+				$warnings[] = self::make_health_warning(
+					'warning',
+					'deep_nesting',
+					$item,
+					sprintf( __( 'This item is nested %d levels deep; consider simplifying the menu.', 'atx_theme' ), $depth )
+				);
+			}
+
+			if ( 'post_type' === $item['type'] ) {
+				$post = get_post( $item['object_id'] );
+				if ( ! $post ) {
+					$warnings[] = self::make_health_warning( 'error', 'missing_content', $item, __( 'The linked content no longer exists.', 'atx_theme' ) );
+				} elseif ( 'publish' !== $post->post_status ) {
+					$warnings[] = self::make_health_warning(
+						'warning',
+						'unpublished_content',
+						$item,
+						sprintf( __( 'The linked content is currently %s.', 'atx_theme' ), sanitize_text_field( $post->post_status ) )
+					);
+				}
+			} elseif ( 'taxonomy' === $item['type'] ) {
+				$term = get_term( $item['object_id'], $item['object'] );
+				if ( ! $term || is_wp_error( $term ) ) {
+					$warnings[] = self::make_health_warning( 'error', 'missing_term', $item, __( 'The linked term no longer exists.', 'atx_theme' ) );
+				}
+			}
+
+			if ( preg_match( '#^https?://#i', $url ) ) {
+				$normalized_url = untrailingslashit( strtolower( strtok( $url, '#' ) ) );
+				if ( $normalized_url ) {
+					$urls[ $normalized_url ][] = $item;
+				}
+			}
+		}
+
+		foreach ( $urls as $duplicate_items ) {
+			if ( count( $duplicate_items ) < 2 ) {
+				continue;
+			}
+			foreach ( $duplicate_items as $duplicate_item ) {
+				$warnings[] = self::make_health_warning( 'warning', 'duplicate_url', $duplicate_item, __( 'Another menu item uses the same destination.', 'atx_theme' ) );
+			}
+		}
+
+		$site_host     = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+		$external_urls = array();
+		foreach ( $urls as $normalized_url => $url_items ) {
+			$url_host = strtolower( (string) wp_parse_url( $normalized_url, PHP_URL_HOST ) );
+			if ( $url_host && $url_host !== $site_host ) {
+				$external_urls[ $normalized_url ] = $url_items;
+			}
+		}
+
+		$checked = 0;
+		foreach ( $external_urls as $external_url => $url_items ) {
+			if ( $checked >= 8 ) {
+				break;
+			}
+			$checked++;
+
+			$response = wp_safe_remote_head( $external_url, array(
+				'timeout'     => 3,
+				'redirection' => 3,
+				'user-agent'  => 'ATX Visual Nav Builder/' . Atx_Nav_Menu::VERSION,
+			) );
+			$status = is_wp_error( $response ) ? 0 : intval( wp_remote_retrieve_response_code( $response ) );
+			if ( is_wp_error( $response ) || $status >= 400 ) {
+				foreach ( $url_items as $url_item ) {
+					$message    = is_wp_error( $response )
+						? __( 'The external link could not be reached.', 'atx_theme' )
+						: sprintf( __( 'The external link returned HTTP %d.', 'atx_theme' ), $status );
+					$warnings[] = self::make_health_warning( 'warning', 'external_link', $url_item, $message );
+				}
+			}
+		}
+
+		$priority = array( 'error' => 0, 'warning' => 1, 'info' => 2 );
+		usort( $warnings, function( $a, $b ) use ( $priority ) {
+			return ( $priority[ $a['severity'] ] ?? 9 ) <=> ( $priority[ $b['severity'] ] ?? 9 );
+		} );
+
+		wp_send_json_success( array(
+			'warnings'         => $warnings,
+			'item_count'       => count( $items ),
+			'external_checked' => $checked,
+			'external_skipped' => max( 0, count( $external_urls ) - $checked ),
+		) );
+	}
+
+	private static function make_health_warning( $severity, $code, $item, $message ) {
+		return array(
+			'severity' => sanitize_key( $severity ),
+			'code'     => sanitize_key( $code ),
+			'item_id'  => intval( $item['id'] ?? 0 ),
+			'title'    => sanitize_text_field( $item['title'] ?? __( 'Untitled item', 'atx_theme' ) ),
+			'message'  => sanitize_text_field( $message ),
+		);
+	}
+
+	public function ajax_revisions() {
+		check_ajax_referer( 'atx_vb', '_wpnonce' );
+		if ( ! current_user_can( Atx_Nav_Menu_Config::get( 'capability' ) ) ) wp_send_json_error();
+
+		$menu_location = self::get_requested_menu_location();
+		$menu_id       = self::get_menu_id_for_location( $menu_location );
+		$revision_id   = sanitize_text_field( wp_unslash( $_POST['revision_id'] ?? '' ) );
+		$base_hash     = sanitize_text_field( wp_unslash( $_POST['base_hash'] ?? '' ) );
+		$force         = ! empty( $_POST['force'] );
+
+		if ( ! $menu_id || ! $revision_id ) {
+			wp_send_json_error( 'Missing revision.' );
+		}
+
+		$revision = null;
+		foreach ( self::get_revisions( $menu_id ) as $candidate ) {
+			if ( ( $candidate['id'] ?? '' ) === $revision_id ) {
+				$revision = $candidate;
+				break;
+			}
+		}
+
+		if ( ! $revision ) {
+			wp_send_json_error( 'Revision not found.' );
+		}
+
+		$menu          = wp_get_nav_menu_object( $menu_id );
+		$current_name  = $menu ? $menu->name : '';
+		$current_items = self::get_builder_items( $menu_id );
+		$current_hash  = self::get_menu_state_hash( $menu_id, $current_name, $current_items );
+		if ( ! $force && $base_hash && ! hash_equals( $current_hash, $base_hash ) ) {
+			wp_send_json_error( array(
+				'code'         => 'edit_conflict',
+				'message'      => __( 'This menu changed before the revision could be restored.', 'atx_theme' ),
+				'current_hash' => $current_hash,
+			), 409 );
+		}
+
+		$result = self::apply_menu_state(
+			$menu_id,
+			$menu_location,
+			sanitize_text_field( $revision['menu_name'] ?? $current_name ),
+			(array) ( $revision['items'] ?? array() )
+		);
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		self::record_revision( $menu_id, $menu_location, $current_name, $current_items, __( 'Before revision restore', 'atx_theme' ) );
+
+		wp_send_json_success( array(
+			'message'   => __( 'Revision restored.', 'atx_theme' ),
+			'menu_name' => $result['menu_name'],
+			'items'     => $result['items'],
+			'base_hash' => $result['hash'],
+			'revisions' => self::get_revision_summaries( $menu_id ),
+		) );
+	}
+
+	public function ajax_copy_items() {
+		check_ajax_referer( 'atx_vb', '_wpnonce' );
+		if ( ! current_user_can( Atx_Nav_Menu_Config::get( 'capability' ) ) ) wp_send_json_error();
+
+		$source_location = self::get_requested_menu_location();
+		$target_location = sanitize_key( wp_unslash( $_POST['target_location'] ?? '' ) );
+		$registered      = self::get_registered_locations();
+		$copied_items    = json_decode( wp_unslash( $_POST['items'] ?? '[]' ), true );
+
+		if ( ! $target_location || ! isset( $registered[ $target_location ] ) ) {
+			wp_send_json_error( 'Choose a valid target menu location.' );
+		}
+		if ( $target_location === $source_location ) {
+			wp_send_json_error( 'Choose a different menu location.' );
+		}
+		if ( empty( $copied_items ) || ! is_array( $copied_items ) ) {
+			wp_send_json_error( 'Choose at least one menu item to copy.' );
+		}
+
+		$target_menu_id = self::get_menu_id_for_location( $target_location );
+		$target_menu    = wp_get_nav_menu_object( $target_menu_id );
+		if ( ! $target_menu ) {
+			wp_send_json_error( 'Could not load the target menu.' );
+		}
+
+		$target_items = self::get_builder_items( $target_menu_id );
+		$position     = count( $target_items );
+		foreach ( $copied_items as &$copied_item ) {
+			$copied_item['is_new']  = true;
+			$copied_item['position'] = ++$position;
+		}
+		unset( $copied_item );
+
+		$result = self::apply_menu_state(
+			$target_menu_id,
+			$target_location,
+			$target_menu->name,
+			array_merge( $target_items, $copied_items )
+		);
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		self::record_revision(
+			$target_menu_id,
+			$target_location,
+			$target_menu->name,
+			$target_items,
+			sprintf( __( 'Before copying items from %s', 'atx_theme' ), $source_location )
+		);
+
+		wp_send_json_success( array(
+			'message'         => sprintf( __( 'Copied %d menu items.', 'atx_theme' ), count( $copied_items ) ),
+			'target_location' => $target_location,
+		) );
+	}
+
 	// ── AJAX: Delete item ──
 
 	public function ajax_delete_item() {
@@ -491,7 +1057,7 @@ class Atx_Nav_Visual_Builder {
 		wp_send_json_success( array( 'html' => $html ) );
 	}
 
-	// ── AJAX: Sync preview (transient + icon meta) ──
+	// ── AJAX: Sync the staged workspace into the private preview ──
 
 	public function ajax_preview_sync() {
 		check_ajax_referer( 'atx_vb', '_wpnonce' );
@@ -501,14 +1067,6 @@ class Atx_Nav_Visual_Builder {
 		$items = json_decode( wp_unslash( $_POST['items'] ?? '[]' ), true );
 		if ( is_array( $items ) ) {
 			set_transient( self::get_preview_transient_key( self::get_requested_menu_location() ), $items, 300 );
-		}
-
-		// Sync icon changes to post meta immediately
-		$icons = json_decode( wp_unslash( $_POST['icons'] ?? '{}' ), true );
-		if ( ! empty( $icons ) ) {
-			foreach ( $icons as $item_id => $icon_key ) {
-				update_post_meta( intval( $item_id ), '_atx_nav_icon', sanitize_text_field( $icon_key ) );
-			}
 		}
 
 		wp_send_json_success();
@@ -684,6 +1242,51 @@ class Atx_Nav_Visual_Builder {
 
 			$acf = is_array( $item['acf'] ?? null ) ? $item['acf'] : array();
 			return array_key_exists( $field_name, $acf ) ? $acf[ $field_name ] : $value;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Keep icon, slider, and brand changes inside the preview transient until
+	 * the user performs the single atomic menu save.
+	 */
+	public function filter_frontend_preview_meta( $value, $object_id, $meta_key, $single, $meta_type = 'post' ) {
+		if ( 'post' !== $meta_type || ! self::is_frontend_preview_request() || ! $meta_key ) {
+			return $value;
+		}
+
+		$items = get_transient( self::get_preview_transient_key( self::get_requested_menu_location() ) );
+		if ( ! is_array( $items ) ) {
+			return $value;
+		}
+
+		$meta_map = array(
+			'_atx_nav_icon'            => 'icon',
+			'_atx_nav_slider_enabled'  => 'slider_enabled',
+			'_atx_nav_slider_items'    => 'slider_items',
+			'_atx_nav_brands_enabled'  => 'brands_enabled',
+			'_atx_nav_brand_items'     => 'brand_items',
+			'_atx_nav_icon_custom'     => 'custom_icon_id',
+		);
+
+		if ( ! isset( $meta_map[ $meta_key ] ) ) {
+			return $value;
+		}
+
+		foreach ( $items as $item ) {
+			if ( intval( $item['id'] ?? 0 ) !== intval( $object_id ) ) {
+				continue;
+			}
+
+			if ( '_atx_nav_icon' === $meta_key ) {
+				$preview_value = sanitize_text_field( $item['icon'] ?? '' );
+			} else {
+				$extras        = is_array( $item['extras'] ?? null ) ? $item['extras'] : array();
+				$preview_value = $extras[ $meta_map[ $meta_key ] ] ?? '';
+			}
+
+			return $single ? $preview_value : array( $preview_value );
 		}
 
 		return $value;

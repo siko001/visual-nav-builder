@@ -1,0 +1,226 @@
+/* ==========================================================================
+   Visual Nav Builder - Workspace tools
+   ========================================================================== */
+
+.atx-vb__workspace-toolbar,
+.atx-vb__bulk-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 34px;
+	padding: 6px 12px;
+	border-bottom: 1px solid #dcdcde;
+	background: #fff;
+	flex: 0 0 auto;
+}
+
+.atx-vb__workspace-toolbar {
+	justify-content: space-between;
+}
+
+.atx-vb__workspace-actions,
+.atx-vb__recovery {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.atx-vb__recovery {
+	padding: 4px 8px;
+	border-left: 3px solid #dba617;
+	background: #fcf9e8;
+	font-size: 12px;
+}
+
+.atx-vb__bulk-toolbar {
+	flex-wrap: wrap;
+	background: #f0f6fc;
+}
+
+.atx-vb__bulk-toolbar strong {
+	margin-right: 4px;
+	font-size: 12px;
+}
+
+.atx-vb__bulk-toolbar select {
+	max-width: 220px;
+	min-height: 28px;
+	font-size: 12px;
+}
+
+.atx-vb-item__bulk {
+	display: none;
+	flex: 0 0 auto;
+	align-items: center;
+}
+
+.atx-vb--bulk-mode .atx-vb-item__bulk {
+	display: flex;
+}
+
+.atx-vb-item__bulk input {
+	margin: 0;
+}
+
+.atx-vb__field-row--item-actions .atx-vb__delete-btn {
+	grid-column: auto;
+}
+
+/* Modals */
+.atx-vb-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 100100;
+	display: grid;
+	place-items: center;
+	padding: 24px;
+}
+
+.atx-vb-modal[hidden] {
+	display: none !important;
+}
+
+.atx-vb-modal__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.48);
+	backdrop-filter: blur(2px);
+}
+
+.atx-vb-modal__dialog {
+	position: relative;
+	z-index: 1;
+	width: min(680px, calc(100vw - 48px));
+	max-height: min(760px, calc(100vh - 48px));
+	overflow: hidden;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+	display: flex;
+	flex-direction: column;
+}
+
+.atx-vb-modal__dialog--small {
+	width: min(500px, calc(100vw - 48px));
+}
+
+.atx-vb-modal__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 20px;
+	padding: 18px 20px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.atx-vb-modal__header h2 {
+	margin: 0 0 4px;
+	font-size: 18px;
+}
+
+.atx-vb-modal__header p {
+	margin: 0;
+	color: #646970;
+	font-size: 12px;
+}
+
+.atx-vb-modal__close {
+	padding: 0;
+	color: #646970;
+	font-size: 28px;
+	line-height: 1;
+	text-decoration: none;
+}
+
+.atx-vb-modal__body {
+	padding: 16px 20px;
+	overflow: auto;
+}
+
+.atx-vb-modal__footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 16px 20px;
+}
+
+.atx-vb-health__warning {
+	display: grid;
+	width: 100%;
+	gap: 3px;
+	margin: 0 0 8px;
+	padding: 11px 12px;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #dba617;
+	border-radius: 4px;
+	background: #fff;
+	color: #1d2327;
+	text-align: left;
+	cursor: pointer;
+}
+
+.atx-vb-health__warning:hover {
+	border-color: #2271b1;
+	background: #f6f7f7;
+}
+
+.atx-vb-health__warning--error {
+	border-left-color: #d63638;
+}
+
+.atx-vb-health__warning strong {
+	font-size: 13px;
+}
+
+.atx-vb-health__warning span {
+	color: #646970;
+	font-size: 12px;
+}
+
+.atx-vb-health__success {
+	padding: 18px;
+	border: 1px solid #00a32a;
+	border-radius: 4px;
+	background: #edfaef;
+	color: #006b1b;
+	font-weight: 600;
+}
+
+.atx-vb-health__error {
+	color: #b32d2e;
+}
+
+.atx-vb-history__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 12px 0;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.atx-vb-history__row:last-child {
+	border-bottom: 0;
+}
+
+.atx-vb-history__details {
+	display: grid;
+	gap: 3px;
+}
+
+.atx-vb-history__details span {
+	color: #646970;
+	font-size: 12px;
+}
+
+@media (max-width: 900px) {
+	.atx-vb__workspace-toolbar {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.atx-vb__workspace-actions .button {
+		flex: 1 1 auto;
+	}
+}

@@ -48,14 +48,9 @@
 			object_id: item.object_id || item.id,
 			acf: item.acf || {},
 			icon: item.icon || '',
+			extras: VB.extras[item.id] || item.extras || {},
+			is_new: Boolean(item.is_new),
 		}));
-
-		let iconUpdates = {};
-		this.items.forEach(item => {
-			if (item.icon !== undefined) {
-				iconUpdates[item.id] = item.icon;
-			}
-		});
 
 		const sequence = ++syncSequence;
 
@@ -74,7 +69,6 @@
 				_wpnonce: atxVB.nonce,
 				menu_location: VB.menuLocation,
 				items: JSON.stringify(previewItems),
-				icons: JSON.stringify(iconUpdates),
 			},
 			success: function (res) {
 				if (sequence !== syncSequence) return;

@@ -34,6 +34,43 @@
 		</div>
 	</div>
 
+	<div class="atx-vb__workspace-toolbar">
+		<div class="atx-vb__workspace-actions">
+			<button type="button" class="button button-small" id="atx-vb-undo" disabled title="Undo (Cmd/Ctrl+Z)">↶ Undo</button>
+			<button type="button" class="button button-small" id="atx-vb-redo" disabled title="Redo (Cmd/Ctrl+Shift+Z)">↷ Redo</button>
+			<button type="button" class="button button-small" id="atx-vb-health-open">✓ Menu Health</button>
+			<button type="button" class="button button-small" id="atx-vb-history-open">History</button>
+			<button type="button" class="button button-small" id="atx-vb-bulk-toggle">Bulk Edit</button>
+		</div>
+		<div class="atx-vb__recovery" id="atx-vb-recovery" hidden>
+			<span id="atx-vb-recovery-message">An unsaved draft is available.</span>
+			<button type="button" class="button button-small" id="atx-vb-recovery-restore">Restore</button>
+			<button type="button" class="button-link" id="atx-vb-recovery-discard">Discard</button>
+		</div>
+	</div>
+
+	<div class="atx-vb__bulk-toolbar" id="atx-vb-bulk-toolbar" hidden>
+		<strong><span id="atx-vb-bulk-count">0</span> selected</strong>
+		<label>
+			<span class="screen-reader-text">Move selected items under</span>
+			<select id="atx-vb-bulk-parent"><option value="0">Move to root</option></select>
+		</label>
+		<button type="button" class="button button-small" id="atx-vb-bulk-move">Move</button>
+		<button type="button" class="button button-small" id="atx-vb-bulk-duplicate">Duplicate</button>
+		<label>
+			<span class="screen-reader-text">Copy selected items to menu location</span>
+			<select id="atx-vb-copy-location">
+				<option value="">Copy to location…</option>
+				<?php foreach ( $locations as $location => $data ) : ?>
+					<option value="<?= esc_attr( $location ); ?>"><?= esc_html( $data['label'] ?? $location ); ?></option>
+				<?php endforeach; ?>
+			</select>
+		</label>
+		<button type="button" class="button button-small" id="atx-vb-bulk-copy">Copy</button>
+		<button type="button" class="button button-small atx-vb__delete-btn" id="atx-vb-bulk-delete">Delete</button>
+		<button type="button" class="button-link" id="atx-vb-bulk-done">Done</button>
+	</div>
+
 	<!-- Split View -->
 	<div class="atx-vb__body">
 		<button type="button" class="atx-vb__tree-reopen" id="atx-vb-tree-reopen" title="Open menu tree">☰</button>
@@ -163,6 +200,7 @@
 				<div class="atx-vb__field-row atx-vb__field-row--item-actions">
 					<button type="button" class="button" id="atx-vb-add-child">+ Add Custom Page</button>
 					<button type="button" class="button" id="atx-vb-add-existing-child">+ Add Existing Page</button>
+					<button type="button" class="button" id="atx-vb-duplicate-item">Duplicate Branch</button>
 					<button type="button" class="button atx-vb__delete-btn" id="atx-vb-delete-item">Delete Item</button>
 				</div>
 			</div>
@@ -196,5 +234,50 @@
 	</div>
 </div>
 <div class="atx-vb-toast-stack" id="atx-vb-toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+<div class="atx-vb-modal" id="atx-vb-health-modal" hidden>
+	<div class="atx-vb-modal__backdrop" data-atx-vb-close="health"></div>
+	<section class="atx-vb-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="atx-vb-health-title">
+		<header class="atx-vb-modal__header">
+			<div>
+				<h2 id="atx-vb-health-title">Menu Health</h2>
+				<p id="atx-vb-health-summary">Checking the current staged menu…</p>
+			</div>
+			<button type="button" class="button-link atx-vb-modal__close" data-atx-vb-close="health" aria-label="Close">&times;</button>
+		</header>
+		<div class="atx-vb-modal__body" id="atx-vb-health-results"></div>
+	</section>
+</div>
+
+<div class="atx-vb-modal" id="atx-vb-history-modal" hidden>
+	<div class="atx-vb-modal__backdrop" data-atx-vb-close="history"></div>
+	<section class="atx-vb-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="atx-vb-history-title">
+		<header class="atx-vb-modal__header">
+			<div>
+				<h2 id="atx-vb-history-title">Revision History</h2>
+				<p>The latest 10 saved versions are available for restoration.</p>
+			</div>
+			<button type="button" class="button-link atx-vb-modal__close" data-atx-vb-close="history" aria-label="Close">&times;</button>
+		</header>
+		<div class="atx-vb-modal__body" id="atx-vb-history-results"></div>
+	</section>
+</div>
+
+<div class="atx-vb-modal" id="atx-vb-conflict-modal" hidden>
+	<div class="atx-vb-modal__backdrop"></div>
+	<section class="atx-vb-modal__dialog atx-vb-modal__dialog--small" role="alertdialog" aria-modal="true" aria-labelledby="atx-vb-conflict-title">
+		<header class="atx-vb-modal__header">
+			<div>
+				<h2 id="atx-vb-conflict-title">Newer menu changes detected</h2>
+				<p id="atx-vb-conflict-message">Another administrator changed this menu after you opened it.</p>
+			</div>
+		</header>
+		<div class="atx-vb-modal__footer">
+			<button type="button" class="button" id="atx-vb-conflict-keep">Keep Editing</button>
+			<button type="button" class="button" id="atx-vb-conflict-reload">Reload Latest</button>
+			<button type="button" class="button button-primary" id="atx-vb-conflict-overwrite">Overwrite</button>
+		</div>
+	</section>
+</div>
 
 <?= Atx_Nav_Menu::get_template( '../visual-builder/templates/help-modal', array(), false ); ?>

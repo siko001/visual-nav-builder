@@ -10,9 +10,11 @@
 	let existingSearchRequest = null;
 	let existingSearchGeneration = 0;
 
-	// Save all changes
-	$('#atx-vb-save').on('click', function () {
+	VB.saveMenu = function (force) {
 		let $btn = $(this);
+		if (!$btn.is('#atx-vb-save')) {
+			$btn = $('#atx-vb-save');
+		}
 		VB.recalcPositions();
 
 		if (VB.validateRequiredAcf && !VB.validateRequiredAcf()) {
@@ -30,12 +32,16 @@
 			$('#atx-vb-menu-name').trigger('focus');
 			$('#atx-vb-status').text('Menu name cannot be empty.').css('color', '#e44');
 			if (VB.notify) VB.notify('Menu name cannot be empty.', 'error');
-			return;
+			return null;
 		}
 
 		$btn.prop('disabled', true).text('Saving...');
 
-		$.ajax({
+		VB.items.forEach(function (item) {
+			item.extras = VB.extras[item.id] || item.extras || {};
+		});
+
+		let request = $.ajax({
 			url: atxVB.ajaxUrl,
 			method: 'POST',
 			data: {
@@ -44,29 +50,54 @@
 				menu_location: VB.menuLocation,
 				menu_name: VB.menuName,
 				items: JSON.stringify(VB.items),
+				base_hash: VB.baseHash || '',
+				force: force ? '1' : '',
 			},
 			success: function (res) {
 				$btn.prop('disabled', false).text('Save Changes');
 				if (res.success) {
-					if (VB.setMenuName) {
-						VB.setMenuName(res.data.menu_name || VB.menuName);
+					if (VB.afterSave) {
+						VB.afterSave(res.data);
+					} else {
+						if (VB.setMenuName) {
+							VB.setMenuName(res.data.menu_name || VB.menuName);
+						}
+						VB.dirty = false;
 					}
-					VB.dirty = false;
 					$('#atx-vb-status').text('Saved!').css('color', '#8c8');
 					if (VB.notify) VB.notify('Menu saved.', 'success');
 					setTimeout(() => $('#atx-vb-status').text(''), 2000);
 					VB.refreshPreview();
 				} else {
-					$('#atx-vb-status').text(res.data || 'Save failed').css('color', '#e44');
-					if (VB.notify) VB.notify(res.data || 'Save failed.', 'error');
+					handleSaveError(res && res.data, force);
 				}
 			},
-			error: function () {
+			error: function (xhr) {
 				$btn.prop('disabled', false).text('Save Changes');
-				$('#atx-vb-status').text('Save failed').css('color', '#e44');
-				if (VB.notify) VB.notify('Save failed.', 'error');
+				let data = xhr && xhr.responseJSON ? xhr.responseJSON.data : null;
+				handleSaveError(data, force);
 			}
 		});
+
+		return request;
+	};
+
+	function handleSaveError(data, force) {
+		let message = typeof data === 'object' && data ? data.message : data;
+		message = message || 'Save failed.';
+		if (!force && data && data.code === 'edit_conflict' && VB.showConflict) {
+			VB.showConflict(data, function () {
+				VB.saveMenu(true);
+			});
+			return;
+		}
+		$('#atx-vb-status').text(message).css('color', '#e44');
+		if (VB.notify) VB.notify(message, 'error');
+	}
+
+	// Save all changes
+	$('#atx-vb-save').on('click', function () {
+		VB.saveMenu(false);
 	});
 
 	// Add root item
@@ -75,44 +106,9 @@
 	});
 
 	function addMenuItem(source, parentId) {
-		$.ajax({
-			url: atxVB.ajaxUrl,
-			method: 'POST',
-			data: {
-				action: 'atx_vb_add_item',
-				_wpnonce: atxVB.nonce,
-				menu_location: VB.menuLocation,
-				title: source.title || 'New Item',
-				url: source.url || '#',
-				parent_id: parentId || 0,
-				item_type: source.type || 'custom',
-				object: source.object || 'custom',
-				object_id: source.object_id || 0,
-			},
-			success: function (res) {
-				if (!res.success) {
-					$('#atx-vb-status').text(res.data || 'Could not add item').css('color', '#e44');
-					return;
-				}
-
-				VB.items.push({
-					id: res.data.id,
-					title: res.data.title,
-					url: res.data.url || source.url || '#',
-					parent_id: parentId || 0,
-					position: VB.items.length + 1,
-					classes: [],
-					type: res.data.type || source.type || 'custom',
-					object: res.data.object || source.object || 'custom',
-					object_id: res.data.object_id || source.object_id || res.data.id,
-					acf: {},
-					icon: '',
-				});
-				VB.renderTree();
-				VB.markDirty();
-				VB.refreshPreview(true);
-			}
-		});
+		if (VB.addLocalItem) {
+			VB.addLocalItem(source, parentId || 0);
+		}
 	}
 
 	VB.openExistingItems = function () {

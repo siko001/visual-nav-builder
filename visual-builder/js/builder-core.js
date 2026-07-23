@@ -12,6 +12,9 @@
 		menuName: '',
 		menuLocation: '',
 		extensions: [],
+		extras: {},
+		baseHash: '',
+		revisions: [],
 		dirty: false,
 
 		init: function () {
@@ -72,14 +75,28 @@
 					if (res.success) {
 						self.items = res.data.items;
 						self.menuId = res.data.menu_id;
+						self.baseHash = res.data.base_hash || '';
+						self.revisions = res.data.revisions || [];
+						self.extras = {};
+						self.items.forEach(function (item) {
+							item.extras = item.extras || {};
+							self.extras[item.id] = item.extras;
+						});
 						self.setMenuName(res.data.menu_name || '');
 						self.menuLocation = res.data.menu_location;
 						self.extensions = res.data.extensions || [];
+						self.selectedId = null;
+						self.dirty = false;
 						$('#atx-vb-menu-location').val(self.menuLocation);
 						self.persistMenuLocation();
 						$('#atx-vb').toggleClass('atx-vb--mega', self.hasExtension('mega-nav'));
+						$('#atx-vb-editor').hide();
 						self.renderTree();
 						self.refreshPreview();
+						$('#atx-vb-status').text('');
+						if (self.afterLoad) {
+							self.afterLoad(res.data);
+						}
 					} else {
 						$('#atx-vb-status').text(res.data || 'Could not load menu').css('color', '#e44');
 					}
@@ -201,6 +218,9 @@
 					return;
 				}
 
+				if (self.dirty && self.discardDraft) {
+					self.discardDraft(self.menuLocation);
+				}
 				self.menuLocation = $(this).val();
 				self.persistMenuLocation();
 				self.selectedId = null;

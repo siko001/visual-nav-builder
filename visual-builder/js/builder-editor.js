@@ -558,37 +558,12 @@
 		let parentId = parseInt($('#atx-vb-edit-id').val(), 10);
 		if (!parentId) return;
 
-		$.ajax({
-			url: atxVB.ajaxUrl,
-			method: 'POST',
-			data: {
-				action: 'atx_vb_add_item',
-				_wpnonce: atxVB.nonce,
-				menu_location: VB.menuLocation,
-				title: 'New Item',
-				parent_id: parentId,
-			},
-			success: function (res) {
-				if (res.success) {
-					VB.items.push({
-						id: res.data.id,
-						title: res.data.title,
-						url: '#',
-						parent_id: parentId,
-						position: VB.items.length + 1,
-						classes: [],
-						type: 'custom',
-						object: 'custom',
-						object_id: res.data.id,
-						acf: {},
-						icon: '',
-					});
-					VB.renderTree();
-					VB.markDirty();
-					VB.refreshPreview(true);
-				}
-			}
-		});
+		if (VB.addLocalItem) {
+			VB.addLocalItem(
+				{ title: 'New Item', url: '#', type: 'custom', object: 'custom', object_id: 0 },
+				parentId
+			);
+		}
 	});
 
 	// Delete item
@@ -604,39 +579,9 @@
 
 		if (!confirm(msg)) return;
 
-		// Collect all descendant IDs
-		let idsToDelete = collectDescendantIds(id);
-		idsToDelete.push(id);
-
-		// Delete from server
-		idsToDelete.forEach(delId => {
-			$.ajax({
-				url: atxVB.ajaxUrl,
-				method: 'POST',
-				data: { action: 'atx_vb_delete_item', _wpnonce: atxVB.nonce, menu_location: VB.menuLocation, item_id: delId }
-			});
-		});
-
-		// Remove from local state
-		VB.items = VB.items.filter(i => !idsToDelete.includes(i.id));
-
-		$('#atx-vb-editor').hide();
-		VB.selectedId = null;
-		VB.renderTree();
-		if (VB.updateExistingChildActions) {
-			VB.updateExistingChildActions();
+		if (VB.deleteLocalBranches) {
+			VB.deleteLocalBranches([id]);
 		}
-		VB.markDirty();
-		VB.refreshPreview();
 	});
-
-	function collectDescendantIds(parentId) {
-		let ids = [];
-		VB.getChildren(parentId).forEach(child => {
-			ids.push(child.id);
-			ids = ids.concat(collectDescendantIds(child.id));
-		});
-		return ids;
-	}
 
 })(jQuery);

@@ -26,6 +26,10 @@
 
 		roots.forEach(item => renderItem($tree, item, 0));
 
+		if (this.updateBulkToolbar) {
+			this.updateBulkToolbar();
+		}
+
 		// Init sortable
 		$tree.sortable({
 			items: '> .atx-vb-item',
@@ -89,10 +93,14 @@
 			: '';
 
 		let titleDisplay = isPlaceholder ? '(placeholder)' : escHtml(item.title);
+		let bulkChecked = VB.bulkSelection && VB.bulkSelection.has(item.id) ? ' checked' : '';
 
 		let $item = $(`
 			<div class="atx-vb-item atx-vb-item--depth-${depth}${isCTA ? ' atx-vb-item--cta' : ''}${isNested ? ' atx-vb-item--nested' : ''}${isPlaceholder ? ' atx-vb-item--placeholder' : ''}${VB.selectedId === item.id ? ' atx-vb-item--active' : ''}"
 				data-id="${item.id}" data-depth="${depth}" data-parent="${item.parent_id || 0}">
+				<label class="atx-vb-item__bulk" title="Select ${escHtml(item.title)}">
+					<input type="checkbox" class="atx-vb-item__bulk-input" data-id="${item.id}"${bulkChecked} />
+				</label>
 				<span class="atx-vb-item__handle">⠿</span>
 				${hasChildren ? `<button class="atx-vb-item__toggle">${isCollapsed ? '►' : '▼'}</button>` : '<span style="width:16px;"></span>'}
 				${iconHtml ? `<span class="atx-vb-item__icon">${iconHtml}</span>` : ''}
@@ -104,13 +112,20 @@
 
 		// Click to select
 		$item.on('click', function (e) {
-			if ($(e.target).hasClass('atx-vb-item__toggle') || $(e.target).hasClass('atx-vb-item__handle') || $(e.target).hasClass('atx-vb-item__pin')) return;
+			if ($(e.target).closest('.atx-vb-item__bulk').length || $(e.target).hasClass('atx-vb-item__toggle') || $(e.target).hasClass('atx-vb-item__handle') || $(e.target).hasClass('atx-vb-item__pin')) return;
 			VB.selectedId = item.id;
 			VB.openEditor(item);
 			$('.atx-vb-item--active').removeClass('atx-vb-item--active');
 			$item.addClass('atx-vb-item--active');
 			if (VB.updateExistingChildActions) {
 				VB.updateExistingChildActions();
+			}
+		});
+
+		$item.find('.atx-vb-item__bulk-input').on('change', function (e) {
+			e.stopPropagation();
+			if (VB.toggleBulkItem) {
+				VB.toggleBulkItem(item.id, this.checked);
 			}
 		});
 
