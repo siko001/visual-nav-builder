@@ -341,22 +341,30 @@ class Atx_Nav_Visual_Builder {
 		check_ajax_referer( 'atx_vb', '_wpnonce' );
 		if ( ! current_user_can( Atx_Nav_Menu_Config::get( 'capability' ) ) ) wp_send_json_error();
 
-		$search  = sanitize_text_field( $_POST['search'] ?? '' );
-		$results = array();
+		$search           = sanitize_text_field( $_POST['search'] ?? '' );
+		$priority_results = array();
+		$results          = array();
 
 		$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
 		foreach ( $post_types as $post_type => $post_type_obj ) {
+			$matches_post_type = self::search_matches_object_label( $search, array(
+				$post_type,
+				$post_type_obj->label ?? '',
+				$post_type_obj->labels->name ?? '',
+				$post_type_obj->labels->singular_name ?? '',
+				$post_type_obj->labels->menu_name ?? '',
+			) );
 			$posts = get_posts( array(
 				'post_type'      => $post_type,
 				'post_status'    => 'publish',
-				's'              => $search,
-				'posts_per_page' => 8,
-				'orderby'        => $search ? 'relevance' : 'date',
-				'order'          => 'DESC',
+				's'              => $matches_post_type ? '' : $search,
+				'posts_per_page' => $matches_post_type ? 40 : 8,
+				'orderby'        => $matches_post_type ? 'title' : ( $search ? 'relevance' : 'date' ),
+				'order'          => $matches_post_type ? 'ASC' : 'DESC',
 			) );
 
 			foreach ( $posts as $post ) {
-				$results[] = array(
+				$result = array(
 					'id'        => $post->ID,
 					'title'     => wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ),
 					'url'       => get_permalink( $post ),
@@ -365,16 +373,30 @@ class Atx_Nav_Visual_Builder {
 					'object_id' => $post->ID,
 					'group'     => $post_type_obj->labels->name,
 				);
+				if ( $matches_post_type ) {
+					$priority_results[] = $result;
+				} else {
+					$results[] = $result;
+				}
 			}
 		}
 
 		$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'objects' );
 		foreach ( $taxonomies as $taxonomy => $taxonomy_obj ) {
+			$matches_taxonomy = self::search_matches_object_label( $search, array(
+				$taxonomy,
+				$taxonomy_obj->label ?? '',
+				$taxonomy_obj->labels->name ?? '',
+				$taxonomy_obj->labels->singular_name ?? '',
+				$taxonomy_obj->labels->menu_name ?? '',
+			) );
 			$terms = get_terms( array(
 				'taxonomy'   => $taxonomy,
 				'hide_empty' => false,
-				'search'    => $search,
-				'number'    => 8,
+				'search'     => $matches_taxonomy ? '' : $search,
+				'number'     => $matches_taxonomy ? 40 : 8,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
 			) );
 
 			if ( is_wp_error( $terms ) ) {
@@ -387,7 +409,7 @@ class Atx_Nav_Visual_Builder {
 					continue;
 				}
 
-				$results[] = array(
+				$result = array(
 					'id'        => $term->term_id,
 					'title'     => wp_specialchars_decode( $term->name, ENT_QUOTES ),
 					'url'       => $term_link,
@@ -396,10 +418,52 @@ class Atx_Nav_Visual_Builder {
 					'object_id' => $term->term_id,
 					'group'     => $taxonomy_obj->labels->name,
 				);
+				if ( $matches_taxonomy ) {
+					$priority_results[] = $result;
+				} else {
+					$results[] = $result;
+				}
 			}
 		}
 
-		wp_send_json_success( array( 'items' => array_slice( $results, 0, 40 ) ) );
+		$merged = array();
+		$seen   = array();
+		foreach ( array_merge( $priority_results, $results ) as $result ) {
+			$key = $result['type'] . ':' . $result['object'] . ':' . $result['object_id'];
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+
+			$seen[ $key ] = true;
+			$merged[]     = $result;
+			if ( count( $merged ) >= 40 ) {
+				break;
+			}
+		}
+
+		wp_send_json_success( array( 'items' => $merged ) );
+	}
+
+	private static function search_matches_object_label( $search, $labels ) {
+		$normalize = static function( $value ) {
+			$value = strtolower( remove_accents( (string) $value ) );
+			$value = preg_replace( '/[\\s_-]+/', ' ', $value );
+			return trim( $value );
+		};
+
+		$needle = $normalize( $search );
+		if ( '' === $needle ) {
+			return false;
+		}
+
+		foreach ( array_filter( $labels ) as $label ) {
+			$haystack = $normalize( $label );
+			if ( '' !== $haystack && false !== strpos( $haystack, $needle ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// ── AJAX: Delete item ──

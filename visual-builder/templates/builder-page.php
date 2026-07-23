@@ -47,8 +47,8 @@
 				</div>
 				<input type="text" id="atx-vb-search" placeholder="Search items..." class="atx-vb__search" />
 				<div class="atx-vb__button-group">
-					<button type="button" class="button button-small" id="atx-vb-add-root" hidden>+ Add Custom Root</button>
-					<button type="button" class="button button-small" id="atx-vb-add-existing-toggle" hidden>+ Add Existing Root</button>
+					<button type="button" class="button button-small" id="atx-vb-add-root" hidden>+ Custom Root</button>
+					<button type="button" class="button button-small" id="atx-vb-add-existing-toggle" hidden>+ Existing Root</button>
 					<button type="button" class="button button-small" id="atx-vb-collapse-all" hidden>Collapse All</button>
 					<button type="button" class="button button-small" id="atx-vb-expand-all" hidden>Expand All</button>
 				</div>
@@ -57,7 +57,7 @@
 						<strong>Add Existing Page</strong>
 						<button type="button" class="button-link atx-vb-existing__close" id="atx-vb-existing-close" aria-label="Close existing items" title="Close">&times;</button>
 					</div>
-					<input type="search" id="atx-vb-existing-search" class="widefat" placeholder="Search pages, posts, products, categories..." />
+					<input type="search" id="atx-vb-existing-search" class="widefat" placeholder="Search titles or content types..." />
 					<div id="atx-vb-existing-results" class="atx-vb-existing__results"></div>
 				</div>
 			</div>

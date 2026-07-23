@@ -104,6 +104,16 @@
 	margin-top: 6px;
 }
 
+.atx-vb__button-group #atx-vb-add-root,
+.atx-vb__button-group #atx-vb-add-existing-toggle {
+	flex: 1 1 0;
+	min-width: 0;
+	padding-right: 6px;
+	padding-left: 6px;
+	font-size: 11px;
+	white-space: nowrap;
+}
+
 .atx-vb-existing {
 	margin-top: 10px;
 	padding: 10px;

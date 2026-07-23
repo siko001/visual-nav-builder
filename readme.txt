@@ -65,8 +65,9 @@ release must include an asset named `visual-nav-builder.zip`.
 = 1.1.8 =
 
 * Added a close control and Escape-key support to the Add Existing panel.
-* Added clear Add Custom Root and Add Existing Root actions for empty menus.
+* Added compact Custom Root and Existing Root actions for empty menus.
 * Kept item-editor add actions on one line in narrow panels.
+* Search custom post types and taxonomies by their label, singular label, or slug.
 * Versioned every builder stylesheet directly so updates no longer require a hard refresh.
 
 = 1.1.7 =
