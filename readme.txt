@@ -3,7 +3,7 @@ Contributors: atx
 Tags: navigation, menus, visual builder, live preview
 Requires at least: 6.0
 Requires PHP: 8.1
-Stable tag: 1.1.8
+Stable tag: 1.1.9
 License: GPLv2 or later
 
 Edit any registered WordPress menu location in a live preview of the real website.
@@ -61,6 +61,11 @@ Updates are read from GitHub Releases in `siko001/visual-nav-builder`. Each
 release must include an asset named `visual-nav-builder.zip`.
 
 == Changelog ==
+
+= 1.1.9 =
+
+* Show only friendly content-type labels in Add Existing results.
+* Prevent slower previous searches from overwriting newer CPT results.
 
 = 1.1.8 =
 

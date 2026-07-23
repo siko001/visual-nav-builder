@@ -7,6 +7,8 @@
 
 	let VB = window.AtxVB;
 	let existingSearchTimer = null;
+	let existingSearchRequest = null;
+	let existingSearchGeneration = 0;
 
 	// Save all changes
 	$('#atx-vb-save').on('click', function () {
@@ -156,8 +158,13 @@
 	function searchExistingItems() {
 		let query = $('#atx-vb-existing-search').val() || '';
 		let $results = $('#atx-vb-existing-results').html('<div class="atx-vb-existing__empty">Searching...</div>');
+		let generation = ++existingSearchGeneration;
 
-		$.ajax({
+		if (existingSearchRequest && existingSearchRequest.readyState !== 4) {
+			existingSearchRequest.abort();
+		}
+
+		existingSearchRequest = $.ajax({
 			url: atxVB.ajaxUrl,
 			method: 'POST',
 			data: {
@@ -166,6 +173,10 @@
 				search: query,
 			},
 			success: function (res) {
+				if (generation !== existingSearchGeneration) {
+					return;
+				}
+
 				if (!res.success || !res.data || !res.data.items || !res.data.items.length) {
 					$results.html('<div class="atx-vb-existing__empty">No matching items.</div>');
 					return;
@@ -177,7 +188,7 @@
 						<div class="atx-vb-existing__item">
 							<div class="atx-vb-existing__meta">
 								<strong>${escHtml(item.title)}</strong>
-								<span>${escHtml(item.group)} · ${escHtml(item.type)}</span>
+								<span>${escHtml(item.group)}</span>
 							</div>
 							<div class="atx-vb-existing__actions">
 								<button type="button" class="button button-small atx-vb-existing__add-root">Add Root</button>
@@ -196,8 +207,16 @@
 				});
 				VB.updateExistingChildActions();
 			},
-			error: function () {
+			error: function (xhr, status) {
+				if (generation !== existingSearchGeneration || status === 'abort') {
+					return;
+				}
 				$results.html('<div class="atx-vb-existing__empty">Could not load items.</div>');
+			},
+			complete: function () {
+				if (generation === existingSearchGeneration) {
+					existingSearchRequest = null;
+				}
 			}
 		});
 	}
