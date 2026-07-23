@@ -100,7 +100,12 @@ class Atx_Nav_Visual_Builder {
 		wp_enqueue_script( 'jquery-ui-draggable' );
 		wp_enqueue_script( 'jquery-ui-droppable' );
 
-		wp_enqueue_style( 'atx-vb-css', $base . '/css/builder.css', array(), $ver );
+		$style_deps = array();
+		foreach ( array( 'layout', 'tree', 'editor', 'help', 'preview' ) as $style ) {
+			$handle = 'atx-vb-' . $style;
+			wp_enqueue_style( $handle, $base . '/css/builder-' . $style . '.css', $style_deps, $ver );
+			$style_deps = array( $handle );
+		}
 
 		// Admin image picker (reused for slider/brand/icon uploads)
 		$admin_base = Atx_Nav_Menu::get_module_url() . '/assets/js/admin';

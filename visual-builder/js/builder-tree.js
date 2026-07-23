@@ -18,7 +18,7 @@
 		$tree.html('');
 
 		let hasHierarchy = this.items.some(item => Boolean(item.parent_id));
-		$('#atx-vb-add-existing-toggle').prop('hidden', this.items.length > 0);
+		$('#atx-vb-add-root, #atx-vb-add-existing-toggle').prop('hidden', this.items.length > 0);
 		$('#atx-vb-collapse-all, #atx-vb-expand-all').prop('hidden', !hasHierarchy);
 
 		let roots = this.items.filter(i => !i.parent_id);

@@ -121,8 +121,16 @@
 		searchExistingItems();
 	};
 
+	VB.closeExistingItems = function () {
+		$('#atx-vb-existing').addClass('atx-vb-existing--hidden');
+	};
+
 	$('#atx-vb-add-existing-toggle, #atx-vb-add-existing-child').on('click', function () {
 		VB.openExistingItems();
+	});
+
+	$('#atx-vb-existing-close').on('click', function () {
+		VB.closeExistingItems();
 	});
 
 	$('#atx-vb-existing-search').on('input', function () {
@@ -219,7 +227,10 @@
 	});
 
 	$(document).on('keydown', function (e) {
-		if (e.key === 'Escape') $('#atx-vb-help-modal').hide();
+		if (e.key === 'Escape') {
+			$('#atx-vb-help-modal').hide();
+			if (VB.closeExistingItems) VB.closeExistingItems();
+		}
 	});
 
 })(jQuery);

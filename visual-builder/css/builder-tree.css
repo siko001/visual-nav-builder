@@ -111,6 +111,34 @@
 	background: #f6f7f7;
 }
 
+.atx-vb-existing__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.atx-vb-existing__header strong {
+	font-size: 12px;
+}
+
+.atx-vb-existing__close {
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 0;
+	color: #646970;
+	font-size: 22px;
+	line-height: 20px;
+	cursor: pointer;
+}
+
+.atx-vb-existing__close:hover,
+.atx-vb-existing__close:focus {
+	color: #1d2327;
+}
+
 .atx-vb-existing--hidden {
 	display: none;
 }

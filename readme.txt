@@ -3,7 +3,7 @@ Contributors: atx
 Tags: navigation, menus, visual builder, live preview
 Requires at least: 6.0
 Requires PHP: 8.1
-Stable tag: 1.1.7
+Stable tag: 1.1.8
 License: GPLv2 or later
 
 Edit any registered WordPress menu location in a live preview of the real website.
@@ -61,6 +61,13 @@ Updates are read from GitHub Releases in `siko001/visual-nav-builder`. Each
 release must include an asset named `visual-nav-builder.zip`.
 
 == Changelog ==
+
+= 1.1.8 =
+
+* Added a close control and Escape-key support to the Add Existing panel.
+* Added clear Add Custom Root and Add Existing Root actions for empty menus.
+* Kept item-editor add actions on one line in narrow panels.
+* Versioned every builder stylesheet directly so updates no longer require a hard refresh.
 
 = 1.1.7 =
 

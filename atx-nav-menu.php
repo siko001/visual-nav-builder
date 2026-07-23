@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ATX Nav Visual Builder
  * Description: Build registered WordPress menu locations visually against a live, interactive website preview.
- * Version: 1.1.7
+ * Version: 1.1.8
  * Requires at least: 6.0
  * Requires PHP: 8.1
  * Author: ATX - Neil VM
@@ -43,7 +43,7 @@ if ( ! class_exists( 'Atx_Nav_Menu' ) ) {
 		/**
 		 * Module version
 		 */
-		const VERSION = '1.1.7';
+		const VERSION = '1.1.8';
 
 		/**
 		 * Menu location identifier — use config value
