@@ -1,0 +1,24 @@
+<div class="atx-image-picker" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;display:flex;align-items:center;justify-content:center;">
+	<div class="atx-image-picker__backdrop" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);"></div>
+	<div class="atx-image-picker__panel" style="position:relative;background:#fff;border-radius:8px;width:700px;max-width:90vw;height:80vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,0.3);overflow:hidden;">
+		<div style="padding:16px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+			<strong style="font-size:16px;">Select Image</strong>
+			<button type="button" class="atx-image-picker__close" style="background:none;border:none;font-size:24px;cursor:pointer;color:#666;">&times;</button>
+		</div>
+		<div style="padding:12px 20px;border-bottom:1px solid #eee;display:flex;gap:10px;align-items:center;flex-shrink:0;">
+			<input type="text" class="atx-image-picker__search widefat" placeholder="Search media library..." style="flex:1;" />
+			<label class="button" style="margin:0;flex-shrink:0;cursor:pointer;">
+				Upload <input type="file" class="atx-image-picker__upload" accept="image/*" style="display:none;" />
+			</label>
+		</div>
+		<div class="atx-image-picker__upload-progress" style="display:none;padding:8px 20px;background:#f0f6fc;border-bottom:1px solid #eee;flex-shrink:0;">
+			<span class="atx-image-picker__upload-text">Uploading...</span>
+		</div>
+		<div class="atx-image-picker__grid" style="padding:16px;overflow-y:scroll;flex:1 1 0;min-height:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));grid-auto-rows:100px;gap:8px;align-content:start;">
+			<p style="grid-column:1/-1;text-align:center;color:#999;">Loading...</p>
+		</div>
+		<div class="atx-image-picker__loadmore" style="padding:12px 20px;border-top:1px solid #eee;text-align:center;display:none;flex-shrink:0;">
+			<button type="button" class="button atx-image-picker__more-btn">Load More</button>
+		</div>
+	</div>
+</div>

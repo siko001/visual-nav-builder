@@ -1,0 +1,203 @@
+/* --------------------------------------------------------------------------
+   6. Nested Navigation (Built-in Appliances)
+   The nested dropdown replaces the main nav bar instead of opening below it.
+   -------------------------------------------------------------------------- */
+
+/* The nested dropdown overlays the main nav bar */
+.atx-nav-mega-dropdown--nested {
+	top: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	bottom: auto;
+	border-radius: 0;
+	box-shadow: none;
+	z-index: 1001;
+	overflow: visible;
+	/* height: 60px; */
+	/* border: 2px solid red; */
+	max-width: 1330px;
+}
+
+/* When active or moved to container, animate in */
+.atx-nav-top-item--active > .atx-nav-mega-dropdown--nested,
+.atx-nav-menu__container > .atx-nav-mega-dropdown--nested {
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+	position: relative;
+	width: 100%;
+	animation: atxNestedBarIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes atxNestedBarIn {
+	from {
+		opacity: 0;
+		max-width: 200px;
+	}
+	to {
+		opacity: 1;
+		max-width: 1330px;
+	}
+}
+
+.atx-nav-mega-dropdown--nested .atx-nav-mega-dropdown__inner {
+	padding: 0;
+	flex-direction: column;
+	gap: 0;
+}
+
+/* Secondary nav bar - replaces the main top bar */
+.atx-nav-nested-bar {
+	background: #fff;
+	border-top: 1px solid #eaeaea;
+	box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+	padding: 8px 0;
+}
+
+.atx-nav-nested-bar__list {
+	display: flex;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	overflow-x: auto;
+	white-space: nowrap;
+	scrollbar-width: none;
+	align-items: center;
+	height: 45px;
+}
+
+.atx-nav-nested-bar__list::-webkit-scrollbar {
+	display: none;
+}
+
+.atx-nav-nested-bar__item {
+	flex-shrink: 0;
+	position: static;
+	display: flex;
+	align-items: center;
+	height: 100%;
+}
+
+.atx-nav-nested-bar__link {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 0 12px;
+	height: 100%;
+	font-family: 'Gotham', sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	color: #1E1E1C;
+	text-decoration: none;
+	overflow:visible;
+	border-bottom: 2px solid transparent;
+	transition: color 0.2s ease, border-color 0.2s ease;
+	box-sizing: border-box;
+}
+
+.atx-nav-nested-bar__link:hover,
+.atx-nav-nested-bar__link:focus {
+	color: #e41b1c;
+	text-decoration: none;
+	outline: none;
+}
+
+/* Only show red border on items that have a panel */
+.atx-nav-nested-bar__item--has-panel:hover > .atx-nav-nested-bar__link,
+.atx-nav-nested-bar__item--has-panel > .atx-nav-nested-bar__link:focus {
+	border-bottom-color: #e41b1c;
+}
+
+/* No border on items without panels */
+.atx-nav-nested-bar__item:not(.atx-nav-nested-bar__item--has-panel) > .atx-nav-nested-bar__link {
+	border-bottom-color: transparent !important;
+}
+
+.atx-nav-nested-bar__item--active > .atx-nav-nested-bar__link {
+	color: #e41b1c;
+	border-bottom-color: #e41b1c;
+}
+
+/* .atx-nav-nested-bar__item.atx-nav-nested-bar__item--back {
+	margin-right: -8px;
+} */
+
+.atx-nav-nested-bar__item--back {
+	position: sticky;
+	left: 0;
+	z-index: 4;
+	background: #fff;
+}
+
+.atx-nav-nested-bar__item--back .atx-nav-nested-bar__link {
+	color: #A5A5A5;
+	font-weight: 400;
+	font-size: 13px;
+	gap: 8px;
+	font-family: inter;
+	border-bottom: none;
+}
+
+.atx-nav-nested-bar__item--back .atx-nav-nested-bar__link:hover {
+	color: #e41b1c;
+}
+
+/* "Built-In Appliances >" label — scrolls under the back button */
+.atx-nav-nested-bar__item--label {
+	margin-right: 12px;
+	border-right: 1px solid #eaeaea;
+	padding-right: 12px;
+	z-index: 2;
+}
+
+.atx-nav-nested-bar__item--label .atx-nav-nested-bar__link {
+	white-space: nowrap;
+	border-radius: 4px;
+	background: rgba(229, 231, 235, 0.40);
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 10px 16px;
+	gap: 6px;
+	color: #1e1e1c;
+	font-family: 'Gotham', sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 19.5px;
+	height: auto;
+	border-bottom: none;
+}
+
+.atx-nav-nested-chevron {
+	font-size: 8px;
+	transition: transform 0.2s ease;
+}
+
+.atx-nav-nested-bar__item--active .atx-nav-nested-chevron {
+	transform: rotate(180deg);
+}
+
+/* Nested panels (tab content) — dropdown below secondary bar */
+.atx-nav-nested-panel {
+	display: none;
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 100%;
+	background: #fff;
+	padding: 30px 30px 12px;
+	border-radius: 8px;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+	z-index: 998;
+}
+
+.atx-nav-nested-bar__item--active > .atx-nav-nested-panel {
+	display: block;
+}
+
+/* Nested panel inner flex row (categories + slider side by side) */
+.atx-nav-nested-panel__row {
+	display: flex;
+	gap: 30px;
+	flex-wrap: nowrap;
+}

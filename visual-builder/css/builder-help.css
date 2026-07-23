@@ -1,0 +1,93 @@
+/* ==========================================================================
+   Visual Nav Builder - Help Modal
+   ========================================================================== */
+
+.atx-vb-help__backdrop {
+	position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+	background: rgba(0,0,0,0.6); z-index: 100000;
+}
+
+.atx-vb-help__panel {
+	position: fixed; top: 50%; left: 50%;
+	transform: translate(-50%, -50%);
+	background: #fff; border-radius: 12px;
+	width: 640px; max-width: 90vw; max-height: 85vh;
+	display: flex; flex-direction: column;
+	box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+	z-index: 100001;
+	overflow: hidden;
+}
+
+.atx-vb-help__header {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 16px 24px; border-bottom: 1px solid #eee; flex-shrink: 0;
+}
+
+.atx-vb-help__header strong { font-size: 16px; }
+
+.atx-vb-help__close {
+	background: none; border: none; font-size: 24px;
+	cursor: pointer; color: #999; padding: 0;
+}
+
+.atx-vb-help__body {
+	padding: 24px; overflow-y: auto; flex: 1;
+	font-size: 13px; line-height: 1.6; color: #333;
+}
+
+.atx-vb-help__body h3 {
+	font-size: 15px; margin: 24px 0 8px; padding-bottom: 6px;
+	border-bottom: 1px solid #f0f0f0; color: #1e1e1c;
+}
+
+.atx-vb-help__body h3:first-child { margin-top: 0; }
+
+.atx-vb-help__body p { margin: 0 0 12px; }
+.atx-vb-help__body ol, .atx-vb-help__body ul { margin: 0 0 12px; padding-left: 20px; }
+.atx-vb-help__body li { margin-bottom: 4px; }
+.atx-vb-help__body code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+
+.atx-vb-help__table {
+	width: 100%; border-collapse: collapse; margin: 8px 0 16px;
+}
+
+.atx-vb-help__table td {
+	padding: 8px 10px; border-bottom: 1px solid #f0f0f0;
+	vertical-align: top; font-size: 12px;
+}
+
+.atx-vb-help__table tr:last-child td { border-bottom: none; }
+.atx-vb-help__table td:first-child { width: 180px; white-space: nowrap; }
+
+.atx-vb-help__class {
+	display: inline-block; background: #e8f0fe; color: #1a56db;
+	padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;
+}
+
+.atx-vb-help__diagram {
+	background: #fafafa; border: 1px solid #eee; border-radius: 8px;
+	padding: 16px; margin: 8px 0 16px;
+}
+
+.atx-vb-help__level {
+	display: flex; align-items: center; gap: 8px; padding: 4px 0;
+}
+
+.atx-vb-help__level small { color: #999; font-size: 11px; }
+
+.atx-vb-help__arrow { color: #ccc; font-size: 12px; }
+
+.atx-vb-help__tag {
+	display: inline-block; padding: 4px 10px; border-radius: 4px;
+	font-size: 12px; font-weight: 600;
+}
+
+.atx-vb-help__tag--primary { background: #1e1e1c; color: #fff; }
+.atx-vb-help__tag--tab { background: #e8f0fe; color: #1a56db; }
+.atx-vb-help__tag--category { background: #f0f0f0; color: #333; }
+.atx-vb-help__tag--sublink { background: #fff; border: 1px solid #ddd; color: #666; }
+
+/* Hierarchy indentation */
+.atx-vb-help__level--indent-1 { padding-left: 24px; }
+.atx-vb-help__level--indent-2 { padding-left: 48px; }
+.atx-vb-help__level--indent-3 { padding-left: 72px; }

@@ -1,0 +1,414 @@
+/* ==========================================================================
+   Atx Nav Menu - Flyout Layout
+   Sidebar categories on the left, brands + slider as side-by-side columns
+   on the right. Category hover swaps to sub-links + category brands.
+   ========================================================================== */
+
+:root {
+	--flyout-sidebar-width: 280px;
+	--flyout-min-height: 400px;
+}
+
+/* ── Dropdown Override ── */
+
+.atx-nav-mega-dropdown--flyout .atx-nav-mega-dropdown__inner {
+	padding: 0;
+	gap: 0;
+	display: block;
+}
+
+/* ── Flyout Container ── */
+
+.atx-nav-flyout {
+	position: relative;
+	display: flex;
+	min-height: var(--flyout-min-height);
+}
+
+/* ── Sidebar ── */
+
+.atx-nav-flyout__sidebar {
+	width: var(--flyout-sidebar-width);
+	flex-shrink: 0;
+	border-right: 1px solid #eaeaea;
+	padding: 24px 0;
+	overflow-y: auto;
+}
+
+.atx-nav-flyout__heading {
+	font-family: 'Gotham', 'Inter', sans-serif;
+	font-size: 16px;
+	font-weight: 700;
+	color: #1e1e1c;
+	margin: 0 0 16px;
+	padding: 0 24px;
+	line-height: 1.3;
+}
+
+/* ── Category List ── */
+
+.atx-nav-flyout__cat-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.atx-nav-flyout__cat {
+	margin: 0 16px;
+	position: static;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.atx-nav-flyout__cat:last-child {
+	border-bottom: none;
+}
+
+.atx-nav-flyout__cat-link {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 24px 8px;
+	font-family: 'Gotham Book', 'Gotham', 'Inter', sans-serif;
+	font-size: 14px;
+	font-weight: 400;
+	color: #000;
+	text-decoration: none;
+	transition: background 0.15s ease, color 0.15s ease;
+	cursor: pointer;
+}
+
+.atx-nav-flyout__cat-link:hover,
+.atx-nav-flyout__cat-link:focus,
+.atx-nav-flyout__cat--active > .atx-nav-flyout__cat-link {
+	background: #f5f5f5;
+	color: #e41b1c;
+	text-decoration: none;
+	outline: none;
+}
+
+.atx-nav-flyout__cat-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+}
+
+.atx-nav-flyout__cat-icon svg {
+	width: 18px;
+	height: 18px;
+}
+
+.atx-nav-flyout__cat-title {
+	flex: 1;
+	min-width: 0;
+}
+
+.atx-nav-flyout__cat-chevron {
+	font-size: 10px;
+	color: #ccc;
+	flex-shrink: 0;
+	transition: color 0.15s ease;
+}
+
+.atx-nav-flyout__cat-link:hover .atx-nav-flyout__cat-chevron,
+.atx-nav-flyout__cat--active > .atx-nav-flyout__cat-link .atx-nav-flyout__cat-chevron {
+	color: #e41b1c;
+}
+
+
+/* ==========================================================================
+   Default Area — [Brands column | Slider column] side by side
+   ========================================================================== */
+
+.atx-nav-flyout__default {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	gap: 0;
+}
+
+/* Brands column in default view */
+.atx-nav-flyout__default-brands {
+	flex: 1;
+	min-width: 0;
+	padding: 24px 24px 12px;
+}
+
+.atx-nav-flyout__default-brands .atx-nav-brands {
+	padding: 0;
+	margin: 0;
+	width: 100%;
+}
+
+/* No gray background in flyout — clean white */
+.atx-nav-flyout__default-brands .atx-nav-brands__inner {
+	background: none;
+	padding: 0;
+}
+
+/* Brands grid: 3 columns, wrapped */
+.atx-nav-flyout__default-brands .atx-nav-brands__list {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 16px;
+	overflow-x: visible;
+	margin-left: 0;
+	padding: 8px 0 0;
+}
+
+.atx-nav-flyout__default-brands .atx-nav-brands__item {
+	width: auto;
+	flex-shrink: unset;
+}
+
+/* Slider column in default view — flush right, full width + height */
+.atx-nav-flyout__default-slider {
+	padding: 12px;
+	flex-shrink: 0;
+	width: 460px;
+	display: flex;
+	margin-left: auto;
+}
+
+.atx-nav-flyout__default-slider .atx-nav-slider {
+	width: 100% !important;
+	align-self: stretch !important;
+	border-radius: 12px 12px 12px 12px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.atx-nav-flyout__default-slider .swiper-wrapper {
+	align-items: center;
+}
+
+/* Flyout slider: larger image + text than standard */
+.atx-nav-flyout__default-slider .atx-nav-slider__image {
+	width: 220px;
+	height: 250px;
+}
+
+.atx-nav-flyout__default-slider .atx-nav-slider__subtitle-highlight {
+	font-size: 32px;
+}
+
+.atx-nav-flyout__default-slider .atx-nav-slider__subtitle-text {
+	font-size: 28px;
+}
+
+.atx-nav-flyout__default-slider .atx-nav-slider__desc {
+	font-size: 13px;
+}
+
+.atx-nav-flyout__default-slider .atx-nav-slider__sale-price {
+	font-size: 24px;
+}
+
+.atx-nav-flyout__default-slider .atx-nav-slider__original-price {
+	font-size: 14px;
+}
+
+.atx-nav-flyout__default-slider .atx-nav-slider__badge {
+	font-size: 11px;
+	padding: 5px 12px;
+}
+
+/* When a panel is active, hide the default area */
+.atx-nav-flyout:has(.atx-nav-flyout__cat--active) > .atx-nav-flyout__default {
+	visibility: hidden;
+}
+
+
+/* ==========================================================================
+   Panel — [Sub-links column | Brands column] side by side
+   ========================================================================== */
+
+.atx-nav-flyout__panel {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: var(--flyout-sidebar-width);
+	right: 0;
+	bottom: 0;
+	background: #fff;
+	z-index: 2;
+	flex-direction: row;
+}
+
+.atx-nav-flyout__cat--active > .atx-nav-flyout__panel {
+	display: flex;
+}
+
+/* Sub-links column (left side of panel) */
+.atx-nav-flyout__panel-main {
+	width: 320px;
+	flex-shrink: 0;
+	padding: 24px 0;
+	overflow-y: auto;
+	border-right: 1px solid #eaeaea;
+}
+
+.atx-nav-flyout__panel-title {
+	font-family: 'Gotham', 'Inter', sans-serif;
+	font-size: 15px;
+	font-weight: 700;
+	color: #1e1e1c;
+	margin: 0 0 12px;
+	padding: 0 24px;
+}
+
+/* Brands column (right side of panel) — 4-col grid */
+.atx-nav-flyout__panel-brands {
+	flex: 1;
+	min-width: 280px;
+	padding: 24px 24px 12px;
+	overflow-y: auto;
+}
+
+.atx-nav-flyout__panel-brands .atx-nav-brands {
+	padding: 0;
+	margin: 0;
+	width: 100%;
+}
+
+.atx-nav-flyout__panel-brands .atx-nav-brands__inner {
+	background: none;
+	padding: 0;
+}
+
+.atx-nav-flyout__panel-brands .atx-nav-brands__list {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 12px;
+	overflow-x: visible;
+	margin-left: 0;
+	padding: 8px 0 0;
+}
+
+.atx-nav-flyout__panel-brands .atx-nav-brands__item {
+	width: auto;
+	flex-shrink: unset;
+}
+
+
+/* ==========================================================================
+   Sub-links
+   ========================================================================== */
+
+.atx-nav-flyout__sublinks {
+	list-style: none;
+	margin: 0 12px;
+	padding: 12px;
+
+
+}
+
+.atx-nav-flyout__sublink {
+	border-bottom: 1px solid #f5f5f5;
+}
+
+.atx-nav-flyout__sublink:last-child {
+	border-bottom: none;
+}
+
+.atx-nav-flyout__sublink-link {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 8px;
+	font-size: 13px;
+	font-weight: 400;
+	color: #686868;
+	text-decoration: none;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.atx-nav-flyout__sublink-link:hover,
+.atx-nav-flyout__sublink-link:focus {
+	color: #e41b1c;
+	background: #f5f5f5;
+	text-decoration: none;
+	outline: none;
+}
+
+.atx-nav-flyout__sublink-chevron {
+	font-size: 9px;
+	color: #ccc;
+	transition: color 0.15s ease;
+}
+
+.atx-nav-flyout__sublink-link:hover .atx-nav-flyout__sublink-chevron {
+	color: #e41b1c;
+}
+
+
+/* ==========================================================================
+   Sub-link Brand Cascade (3-tier: parent → category → sub-link)
+   ========================================================================== */
+
+/* Sub-link brands are rendered inline but hidden */
+.atx-nav-flyout__sublink-brands {
+	display: none;
+}
+
+/* JS-created slot for active sub-link brands */
+.atx-nav-flyout__panel-brands-slot {
+	display: none;
+}
+
+/* When sub-link brands are active, hide category brands and show the slot */
+.atx-nav-flyout__panel-brands--sublink-active > .atx-nav-brands {
+	display: none;
+}
+
+.atx-nav-flyout__panel-brands--sublink-active > .atx-nav-flyout__panel-brands-slot {
+	display: block;
+}
+
+.atx-nav-flyout__panel-brands-slot .atx-nav-brands {
+	padding: 0;
+	margin: 0;
+	width: 100%;
+}
+
+.atx-nav-flyout__panel-brands-slot .atx-nav-brands__inner {
+	background: none;
+	padding: 0;
+}
+
+.atx-nav-flyout__panel-brands-slot .atx-nav-brands__list {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 12px;
+	overflow-x: visible;
+	margin-left: 0;
+	padding: 8px 0 0;
+}
+
+.atx-nav-flyout__panel-brands-slot .atx-nav-brands__item {
+	width: auto;
+	flex-shrink: unset;
+}
+
+
+/* ==========================================================================
+   Nested Flyout — flyout layout inside a secondary nav panel
+   ========================================================================== */
+
+.atx-nav-nested-panel--flyout {
+	padding: 0;
+}
+
+.atx-nav-nested-panel--flyout .atx-nav-flyout {
+	min-height: 360px;
+}
+
+.atx-nav-nested-panel--flyout .atx-nav-flyout__panel {
+	left: var(--flyout-sidebar-width);
+}
+
+
+/* Brand stagger animation now lives in brands.css (global) */

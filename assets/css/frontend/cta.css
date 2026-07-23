@@ -1,0 +1,59 @@
+/* --------------------------------------------------------------------------
+   CTA Button (pinned right - black button)
+   -------------------------------------------------------------------------- */
+
+.atx-nav-menu__cta-fixed {
+	flex-shrink: 0;
+	display: flex;
+	align-items: stretch;
+}
+
+.atx-nav-top-item--cta {
+	display: flex !important;
+}
+
+.atx-nav-top-item--cta .atx-nav-top-link {
+	background: #1e1e1c;
+	color: #fff;
+	border-radius: 4px;
+	margin: 6px 12px 6px 8px;
+	padding: 0 18px;
+	font-family: 'Gotham Medium', 'Gotham', sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 16px;
+	border-bottom: none;
+	text-align: center;
+	max-width: 200px;
+	min-height: 50px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	box-sizing: border-box;
+	white-space: normal;
+}
+
+.atx-nav-top-item--cta .atx-nav-top-label {
+	white-space: normal;
+}
+
+.atx-nav-top-item--cta .atx-nav-top-link:hover {
+	background: #e41b1c;
+	color: #fff !important;
+}
+
+.atx-nav-top-item--cta .atx-nav-mega-category__icon,
+.atx-nav-top-item--cta .atx-nav-mega-category__icon svg {
+	width: 17px;
+	height: 17px;
+	color: #fff;
+	stroke: #fff;
+	stroke-width: 1px;
+}
+
+.atx-nav-top-item--cta .atx-nav-mega-category__icon--custom {
+	width: 17px;
+	height: 17px;
+	filter: brightness(0) invert(1);
+}

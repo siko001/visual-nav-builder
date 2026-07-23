@@ -1,0 +1,121 @@
+/* --------------------------------------------------------------------------
+   5. Brand Logos
+   -------------------------------------------------------------------------- */
+
+.atx-nav-brands {
+	width: 100%;
+	padding: 0 30px 12px;
+	margin: 12px 0 0;
+}
+
+/* Inside nested panels, no extra side padding needed */
+.atx-nav-nested-panel .atx-nav-brands {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.atx-nav-brands__inner {
+	background: #f9f9f9;
+	border-radius: 12px;
+	padding: 24px 28px 14px;
+	overflow: visible;
+}
+
+.atx-nav-brands__title {
+	color: #050404;
+	font-size: 16px;
+	font-style: normal;
+	font-weight: 500;
+	line-height: 14px;
+	text-transform: capitalize;
+}
+
+.atx-nav-brands__list {
+	margin-left: -9px;
+	padding: 8px 8px 16px 8px;
+	display: flex;
+	gap: 28px;
+	align-items: center;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.atx-nav-brands__list::-webkit-scrollbar {
+	display: none;
+}
+
+.atx-nav-brands__item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100px;
+	height: 50px;
+	flex-shrink: 0;
+	border: 1px solid #eaeaea;
+	border-radius: 8px;
+	padding: 10px;
+	text-decoration: none;
+	background: #fff;
+	transition: box-shadow 0.3s ease;
+	box-sizing: content-box;
+}
+
+.atx-nav-brands__item:hover,
+.atx-nav-brands__item:focus,
+.atx-nav-brands__item:active {
+	border-color: #eaeaea !important;
+	box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+	text-decoration: none !important;
+	outline: none;
+}
+
+.atx-nav-brands__logo {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+	opacity: 0.6;
+	mix-blend-mode: luminosity;
+	transition: opacity 0.3s ease, mix-blend-mode 0.3s ease;
+}
+
+.atx-nav-brands__item:hover .atx-nav-brands__logo {
+	opacity: 1;
+	mix-blend-mode: normal;
+}
+
+.atx-nav-brands__name {
+	font-size: 11px;
+	font-weight: 600;
+	color: #1e1e1c;
+	text-align: center;
+}
+
+/* Stagger animation — brands fade in one after another */
+@keyframes atxBrandFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.atx-nav-brands__item {
+	opacity: 0;
+	animation: atxBrandFadeIn 0.3s ease forwards;
+}
+
+.atx-nav-brands__item:nth-child(1)  { animation-delay: 0s; }
+.atx-nav-brands__item:nth-child(2)  { animation-delay: 0.06s; }
+.atx-nav-brands__item:nth-child(3)  { animation-delay: 0.06s; }
+.atx-nav-brands__item:nth-child(4)  { animation-delay: 0.12s; }
+.atx-nav-brands__item:nth-child(5)  { animation-delay: 0.12s; }
+.atx-nav-brands__item:nth-child(6)  { animation-delay: 0.18s; }
+.atx-nav-brands__item:nth-child(7)  { animation-delay: 0.18s; }
+.atx-nav-brands__item:nth-child(8)  { animation-delay: 0.24s; }
+.atx-nav-brands__item:nth-child(9)  { animation-delay: 0.24s; }
+.atx-nav-brands__item:nth-child(10) { animation-delay: 0.3s; }
+.atx-nav-brands__item:nth-child(11) { animation-delay: 0.3s; }
+.atx-nav-brands__item:nth-child(12) { animation-delay: 0.36s; }

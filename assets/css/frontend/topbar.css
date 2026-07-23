@@ -1,0 +1,116 @@
+/* ==========================================================================
+   Atx Nav Menu - Top Bar
+   Version: 1.0.0
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Top Bar
+   -------------------------------------------------------------------------- */
+
+.atx-nav-menu {
+	position: relative;
+	z-index: 5;
+	max-width: 1360px;
+	width: 100%;
+	margin: 12px auto 0;
+	padding: 0 0 0 16px;
+	box-sizing: border-box;
+}
+
+.atx-nav-menu__container {
+	display: flex;
+	align-items: stretch;
+	max-width: 100%;
+	position: relative;
+}
+
+.atx-nav-menu__scroll-area {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none; /* Firefox */
+	border-radius: 4px;
+	box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+}
+
+.atx-nav-menu__scroll-area::-webkit-scrollbar {
+	display: none; /* Chrome/Safari */
+}
+
+.atx-nav-menu__list {
+	height:100%;
+	display: flex;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	white-space: nowrap;
+	background-color: #fff;
+}
+
+/* Top-level items */
+.atx-nav-top-item {
+	position: static;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	height:100%;
+}
+
+.atx-nav-top-link {
+	display: flex;
+	height: 100%;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	padding: 0 14.45px;
+	font-family: 'Gotham Medium', 'Gotham', sans-serif;
+	font-size: 14px;
+	font-style: normal;
+	font-weight: 500;
+	line-height: 16px;
+	color: #101010;
+	border-right: 1px solid #E0E0E0;
+	text-align: center;
+	text-decoration: none;
+	transition: background 0.2s ease, color 0.2s ease;
+	white-space: normal;
+}
+
+.atx-nav-top-link:hover {
+	background: #f6f6f6;
+	color: #101010;
+	text-decoration: none;
+}
+
+.atx-nav-top-link:focus {
+	background: #f6f6f6;
+	color: #101010;
+	text-decoration: none;
+	outline: none;
+}
+
+.atx-nav-top-link:active {
+	background: #f6f6f6;
+	outline: none;
+	border-color: transparent;
+}
+
+.atx-nav-top-item--has-children:hover > .atx-nav-top-link,
+.atx-nav-top-item--has-children.atx-nav-top-item--active > .atx-nav-top-link {
+	background: #f6f6f6;
+	color: #e41b1c;
+}
+
+.atx-nav-top-arrow {
+	font-size: 9px;
+	transition: transform 0.2s ease;
+}
+
+.atx-nav-top-item--has-children:not(.atx-nav-top-item--nested):hover .atx-nav-top-arrow,
+.atx-nav-top-item--active:not(.atx-nav-top-item--nested) .atx-nav-top-arrow {
+	transform: rotate(180deg);
+}

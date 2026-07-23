@@ -1,0 +1,22 @@
+<div class="atx-preview-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;display:flex;flex-direction:column;background:rgba(0,0,0,0.85);">
+	<div class="atx-preview-header" style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#1e1e1c;flex-shrink:0;">
+		<div style="display:flex;align-items:center;gap:16px;">
+			<strong style="color:#fff;font-size:14px;">Navigation Preview</strong>
+			<div class="atx-preview-sizes" style="display:flex;gap:6px;">
+				<button type="button" class="atx-preview-size button button-small" data-width="100%" title="Desktop" style="color:#fff;border-color:#555;background:#555;">Desktop</button>
+				<button type="button" class="atx-preview-size button button-small" data-width="1024px" title="Tablet" style="color:#fff;border-color:#555;background:#333;">Tablet</button>
+				<button type="button" class="atx-preview-size button button-small" data-width="375px" title="Mobile" style="color:#fff;border-color:#555;background:#333;">Mobile</button>
+			</div>
+		</div>
+		<div style="display:flex;align-items:center;gap:12px;">
+			<button type="button" class="atx-preview-refresh button button-small" style="color:#fff;border-color:#555;background:#333;">↻ Refresh</button>
+			<a href="{{previewUrl}}" target="_blank" class="button button-small" style="color:#fff;border-color:#555;background:#333;">Open in New Tab ↗</a>
+			<button type="button" class="atx-preview-close" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:0 4px;">&times;</button>
+		</div>
+	</div>
+	<div class="atx-preview-body" style="flex:1;display:flex;justify-content:center;align-items:flex-start;padding:20px;overflow:auto;">
+		<div class="atx-preview-frame-wrap" style="width:100%;height:100%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,0.3);transition:width 0.3s ease;">
+			<iframe src="{{previewUrl}}" style="width:100%;height:100%;border:none;"></iframe>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,127 @@
+/* --------------------------------------------------------------------------
+   4. Promotional Slider (Swiper)
+   -------------------------------------------------------------------------- */
+
+.atx-nav-slider {
+	flex-shrink: 0;
+	width: 460px;
+	background: #1e1e1c;
+	border-radius: 12px;
+	overflow: hidden;
+	position: relative;
+	align-self: flex-start;
+}
+
+.atx-nav-slider__slide {
+	padding: 12px 32px 30px;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+
+.atx-nav-slider__badge {
+	display: inline-block;
+	background: #e41b1c;
+	color: #fff;
+	font-size: 9px;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 3px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 12px;
+}
+
+.atx-nav-slider__body {
+	display: flex;
+	align-items: center;
+	gap: 36px;
+}
+
+.atx-nav-slider__image {
+	flex-shrink: 0;
+	width: 180px;
+	height: 210px;
+	/* aspect-ratio: 51/58; */
+}
+
+.atx-nav-slider__image img {
+	width: 100%;
+	height: auto;
+	object-fit: contain;
+	transform: scale(0.95);
+	transition: transform 0.4s ease;
+}
+
+.atx-nav-slider__slide:hover .atx-nav-slider__image img {
+	transform: scale(1);
+}
+
+.atx-nav-slider__content {
+	flex: 1;
+	min-width: 0;
+}
+
+.atx-nav-slider__subtitle {
+	font-weight: 700;
+	line-height: 1.1;
+	margin-bottom: 6px;
+}
+
+.atx-nav-slider__subtitle-highlight {
+	color: #e41b1c;
+	display: block;
+	font-size: 24px;
+}
+
+.atx-nav-slider__subtitle-text {
+	color: #fff;
+	display: block;
+	font-size: 22px;
+}
+
+.atx-nav-slider__desc {
+	font-size: 11px;
+	color: rgba(255, 255, 255, 0.6);
+	line-height: 1.4;
+	margin: 0 0 14px;
+	white-space: normal;
+	overflow-wrap: break-word;
+}
+
+.atx-nav-slider__pricing {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.atx-nav-slider__original-price {
+	font-size: 12px;
+	color: rgba(255, 255, 255, 0.5);
+	text-decoration: line-through;
+}
+
+.atx-nav-slider__sale-price {
+	font-size: 20px;
+	font-weight: 700;
+	color: #fff;
+}
+
+/* Swiper pagination dots override */
+.atx-nav-slider .swiper-pagination {
+	position: absolute;
+	bottom: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.atx-nav-slider .swiper-pagination-bullet {
+	width: 8px !important;
+	height: 8px !important;
+	background: rgba(255, 255, 255, 0.3) !important;
+	opacity: 1 !important;
+	margin: 0 4px !important;
+}
+
+.atx-nav-slider .swiper-pagination-bullet-active {
+	background: #fff !important;
+}

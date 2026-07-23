@@ -1,0 +1,161 @@
+/* --------------------------------------------------------------------------
+   3. Mega Dropdown (Standard)
+   -------------------------------------------------------------------------- */
+
+.atx-nav-mega-dropdown {
+	position: absolute;
+	left: 0;
+	right: 16px;
+	top: calc(100% + 8px);
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+	z-index: 999;
+	padding: 0;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(12px) scale(0.98);
+	transform-origin: top center;
+	transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+	            transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+	            visibility 0s linear 0.3s;
+}
+
+.atx-nav-top-item--has-children:not(.atx-nav-top-item--nested):hover > .atx-nav-mega-dropdown,
+.atx-nav-top-item--has-children.atx-nav-top-item--active > .atx-nav-mega-dropdown {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0) scale(1);
+	transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+	            transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+	            visibility 0s linear 0s;
+}
+
+.atx-nav-mega-dropdown__inner {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 30px 30px 20px;
+	display: flex;
+	flex-wrap: nowrap;
+	gap: 30px;
+}
+
+/* Columns layout */
+.atx-nav-mega-columns {
+	flex: 1;
+	min-width: 0;
+}
+
+.atx-nav-mega-categories {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	columns: 4;
+	column-gap: 50px;
+	column-rule: 1px solid #eaeaea;
+}
+
+/* Column count overrides: switch from CSS columns to CSS grid for exact control */
+.atx-cols-2 .atx-nav-mega-categories,
+.atx-nav-nested-panel.atx-cols-2 .atx-nav-mega-categories { columns: 2 !important; }
+.atx-cols-3 .atx-nav-mega-categories,
+.atx-nav-nested-panel.atx-cols-3 .atx-nav-mega-categories { columns: 3 !important; }
+.atx-cols-4 .atx-nav-mega-categories,
+.atx-nav-nested-panel.atx-cols-4 .atx-nav-mega-categories { columns: 4 !important; }
+
+
+/* Category headers */
+.atx-nav-mega-category {
+	margin-bottom: 16px;
+	break-inside: avoid;
+}
+
+/* Manual column break: add CSS class "atx-col-break" to a menu item to force a new column */
+.atx-nav-mega-category.atx-col-break {
+	break-before: column;
+}
+
+.atx-nav-mega-category__link {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	font-family: 'Gotham', sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	color: #1e1e1c;
+	text-decoration: none;
+	padding: 4px 0;
+}
+
+.atx-nav-mega-category__title {
+	flex: 1;
+	white-space: normal;
+	min-width: 0;
+}
+
+.atx-nav-mega-category__link:hover,
+.atx-nav-mega-category__link:focus {
+	color: #e41b1c;
+	text-decoration: none;
+}
+
+.atx-nav-mega-category__link:visited,
+.atx-nav-mega-category__link:active {
+	text-decoration: none;
+}
+
+.atx-nav-mega-category__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	color: #1e1e1c;
+}
+
+.atx-nav-mega-category__icon svg {
+	width: 20px;
+	height: 20px;
+}
+
+.atx-nav-mega-category__icon--custom {
+	width: 20px;
+	height: 20px;
+	object-fit: contain;
+}
+
+/* Sub-links */
+.atx-nav-mega-sublinks {
+	list-style: none;
+	margin: 0;
+	padding: 0 0 0 28px;
+}
+
+.atx-nav-mega-sublink {
+	margin-bottom: 2px;
+}
+
+.atx-nav-mega-sublink__link {
+	display: block;
+	font-size: 13px;
+	color: #686868;
+	text-decoration: none;
+	white-space: normal;
+	overflow-wrap: break-word;
+	padding: 3px 0;
+	line-height: 1.4;
+}
+
+.atx-nav-mega-sublink__link:hover,
+.atx-nav-mega-sublink__link:focus {
+	color: #e41b1c;
+	text-decoration: none;
+}
+
+.atx-nav-mega-sublink__link:visited,
+.atx-nav-mega-sublink__link:active {
+	text-decoration: none;
+}

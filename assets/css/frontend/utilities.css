@@ -1,0 +1,67 @@
+/* --------------------------------------------------------------------------
+   7. No-extras variant (no slider/brands, like Small Appliances)
+   -------------------------------------------------------------------------- */
+
+.atx-nav-mega-dropdown--no-extras .atx-nav-mega-columns {
+	width: 100%;
+}
+
+.atx-nav-mega-dropdown--no-extras .atx-nav-mega-categories {
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.atx-nav-mega-dropdown--no-extras .atx-nav-mega-dropdown__inner {
+	padding-bottom: 30px;
+}
+
+/* --------------------------------------------------------------------------
+   8. Accessibility
+   -------------------------------------------------------------------------- */
+
+.atx-nav-mega-category__link:focus,
+.atx-nav-mega-sublink__link:focus,
+.atx-nav-nested-bar__link:focus {
+	outline: none;
+}
+
+.atx-nav-top-link:focus {
+	outline: none;
+}
+
+/* Dependency-free chevron icons rendered by the walker. */
+.atx-nav-chevron {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-left: 6px;
+	color: currentColor;
+	flex-shrink: 0;
+	vertical-align: middle;
+	transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.atx-nav-chevron--right {
+	transform: rotate(-90deg);
+}
+
+/* Screen reader text */
+.atx-nav-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   9. Responsive (Tablet - hide on mobile for now)
+   -------------------------------------------------------------------------- */
+@media (max-width: 960px) {
+	.atx-nav-menu {
+		display: none;
+	}
+}
