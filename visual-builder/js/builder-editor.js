@@ -82,7 +82,7 @@
 
 		// CSS classes and add child: hide for sub-links
 		$('#atx-vb-edit-classes').closest('.atx-vb__field').toggle(!subLink);
-		$('#atx-vb-add-child').toggle(!subLink);
+		$('#atx-vb-add-child, #atx-vb-add-existing-child').toggle(!subLink);
 
 		// Hide hr separators when their adjacent sections are hidden
 		// (will be updated after extras module runs too)
@@ -435,6 +435,9 @@
 		$('#atx-vb-editor').hide();
 		VB.selectedId = null;
 		$('.atx-vb-item--active').removeClass('atx-vb-item--active');
+		if (VB.updateExistingChildActions) {
+			VB.updateExistingChildActions();
+		}
 	});
 
 	// Live update on field change
@@ -620,6 +623,9 @@
 		$('#atx-vb-editor').hide();
 		VB.selectedId = null;
 		VB.renderTree();
+		if (VB.updateExistingChildActions) {
+			VB.updateExistingChildActions();
+		}
 		VB.markDirty();
 		VB.refreshPreview();
 	});

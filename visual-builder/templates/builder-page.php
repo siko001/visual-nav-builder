@@ -24,6 +24,10 @@
 					<?php endforeach; ?>
 				</select>
 			</label>
+			<label class="atx-vb__menu-name">
+				<span>Menu name</span>
+				<input type="text" id="atx-vb-menu-name" class="atx-vb__menu-name-input" autocomplete="off" />
+			</label>
 			<!-- <a href="<?= esc_url( admin_url( 'themes.php?page=atx-nav-export' ) ); ?>" class="button atx-vb__export-btn">Export / Import</a>
 			<button type="button" class="button" id="atx-vb-add-root">+ Add Item</button> -->
 			<button type="button" class="button button-primary" id="atx-vb-save">Save Changes</button>
@@ -43,9 +47,9 @@
 				</div>
 				<input type="text" id="atx-vb-search" placeholder="Search items..." class="atx-vb__search" />
 				<div class="atx-vb__button-group">
-					<button type="button" class="button button-small" id="atx-vb-add-existing-toggle">Add Existing</button>
-					<button type="button" class="button button-small" id="atx-vb-collapse-all">Collapse All</button>
-					<button type="button" class="button button-small" id="atx-vb-expand-all">Expand All</button>
+					<button type="button" class="button button-small" id="atx-vb-add-existing-toggle" hidden>+ Add First Page</button>
+					<button type="button" class="button button-small" id="atx-vb-collapse-all" hidden>Collapse All</button>
+					<button type="button" class="button button-small" id="atx-vb-expand-all" hidden>Expand All</button>
 				</div>
 				<div class="atx-vb-existing atx-vb-existing--hidden" id="atx-vb-existing">
 					<input type="search" id="atx-vb-existing-search" class="widefat" placeholder="Search pages, posts, products, categories..." />
@@ -151,8 +155,9 @@
 
 				<hr class="atx-vb__field-divider" />
 
-				<div class="atx-vb__field-row">
-					<button type="button" class="button" id="atx-vb-add-child">+ Add Child</button>
+				<div class="atx-vb__field-row atx-vb__field-row--item-actions">
+					<button type="button" class="button" id="atx-vb-add-child">+ Add Custom Page</button>
+					<button type="button" class="button" id="atx-vb-add-existing-child">+ Add Existing Page</button>
 					<button type="button" class="button atx-vb__delete-btn" id="atx-vb-delete-item">Delete Item</button>
 				</div>
 			</div>

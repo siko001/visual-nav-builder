@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				value="1"
 				class="atx-nav-slider-toggle"
 				<?php checked( $slider_enabled, '1' ); ?> />
-			<strong><?php esc_html_e( 'Enable Promotional Slider', 'crosscraft-child' ); ?></strong>
+			<strong><?php esc_html_e( 'Enable Promotional Slider', 'atx_theme' ); ?></strong>
 		</label>
 	</p>
 
@@ -41,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				value="1"
 				class="atx-nav-brands-toggle"
 				<?php checked( $brands_enabled, '1' ); ?> />
-			<strong><?php esc_html_e( 'Enable Brand Logos', 'crosscraft-child' ); ?></strong>
+			<strong><?php esc_html_e( 'Enable Brand Logos', 'atx_theme' ); ?></strong>
 		</label>
 	</p>
 

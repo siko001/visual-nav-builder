@@ -17,6 +17,10 @@
 		let $tree = $('#atx-vb-tree');
 		$tree.html('');
 
+		let hasHierarchy = this.items.some(item => Boolean(item.parent_id));
+		$('#atx-vb-add-existing-toggle').prop('hidden', this.items.length > 0);
+		$('#atx-vb-collapse-all, #atx-vb-expand-all').prop('hidden', !hasHierarchy);
+
 		let roots = this.items.filter(i => !i.parent_id);
 		roots.sort((a, b) => a.position - b.position);
 
@@ -105,6 +109,9 @@
 			VB.openEditor(item);
 			$('.atx-vb-item--active').removeClass('atx-vb-item--active');
 			$item.addClass('atx-vb-item--active');
+			if (VB.updateExistingChildActions) {
+				VB.updateExistingChildActions();
+			}
 		});
 
 		// Toggle collapse

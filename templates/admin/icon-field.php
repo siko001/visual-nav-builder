@@ -8,20 +8,20 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 ?>
 <p class="field-atx-icon description description-wide">
 	<label for="atx-nav-icon-<?= esc_attr( $item_id ); ?>">
-		<?php esc_html_e( 'Menu Icon', 'crosscraft-child' ); ?>
+		<?php esc_html_e( 'Menu Icon', 'atx_theme' ); ?>
 	</label>
 	<br/>
 	<select id="atx-nav-icon-<?= esc_attr( $item_id ); ?>"
 		name="atx_nav_icon[<?= esc_attr( $item_id ); ?>]"
 		class="widefat atx-nav-icon-select">
-		<option value=""><?php esc_html_e( '— No Icon —', 'crosscraft-child' ); ?></option>
+		<option value=""><?php esc_html_e( '— No Icon —', 'atx_theme' ); ?></option>
 		<?php foreach ( $icons as $key => $icon ) : ?>
 			<option value="<?= esc_attr( $key ); ?>" <?php selected( $selected_icon, $key ); ?>>
 				<?= esc_html( $icon['label'] ); ?>
 			</option>
 		<?php endforeach; ?>
 		<option value="custom" <?php selected( $selected_icon, 'custom' ); ?>>
-			<?php esc_html_e( 'Upload Custom Icon', 'crosscraft-child' ); ?>
+			<?php esc_html_e( 'Upload Custom Icon', 'atx_theme' ); ?>
 		</option>
 	</select>
 
@@ -47,7 +47,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				<img src="<?= esc_url( $custom_url ); ?>" />
 			<?php endif; ?>
 		</span>
-		<button type="button" class="button button-small atx-nav-icon-upload"><?php esc_html_e( 'Upload Icon', 'crosscraft-child' ); ?></button>
-		<button type="button" class="button-link button-small atx-nav-icon-remove atx-admin-icon-remove-btn<?= ! $custom_icon ? ' is-hidden' : ''; ?>"><?php esc_html_e( 'Remove', 'crosscraft-child' ); ?></button>
+		<button type="button" class="button button-small atx-nav-icon-upload"><?php esc_html_e( 'Upload Icon', 'atx_theme' ); ?></button>
+		<button type="button" class="button-link button-small atx-nav-icon-remove atx-admin-icon-remove-btn<?= ! $custom_icon ? ' is-hidden' : ''; ?>"><?php esc_html_e( 'Remove', 'atx_theme' ); ?></button>
 	</span>
 </p>

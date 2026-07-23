@@ -3,7 +3,7 @@ Contributors: atx
 Tags: navigation, menus, visual builder, live preview
 Requires at least: 6.0
 Requires PHP: 8.1
-Stable tag: 1.1.5
+Stable tag: 1.1.7
 License: GPLv2 or later
 
 Edit any registered WordPress menu location in a live preview of the real website.
@@ -61,6 +61,19 @@ Updates are read from GitHub Releases in `siko001/visual-nav-builder`. Each
 release must include an asset named `visual-nav-builder.zip`.
 
 == Changelog ==
+
+= 1.1.7 =
+
+* Made preview location focusing resilient to Lenis, sticky sections, and late layout changes.
+* Footer locations now always focus the true bottom of the preview page.
+* Automatically open selected mobile and off-canvas menus in previews without depending on theme JavaScript or animations.
+* Added menu renaming directly in the visual builder without changing the theme location.
+* Hide Collapse All and Expand All automatically for flat menus in both the visual builder and WordPress Menus screen.
+* Decode WordPress title entities so labels such as `Terms & Conditions` display normally.
+* Improved Add Existing results for narrow panels and dynamically retarget child actions when another menu item is selected.
+* Added Add Custom Page and Add Existing Page actions directly to the item editor.
+* Replaced legacy `crosscraft-child` references with the `atx_theme` text domain.
+* Preserve nonstandard installed folder names during GitHub Release updates.
 
 = 1.1.5 =
 

@@ -17,6 +17,20 @@
 			return;
 		}
 
+		let locationData = atxVB.locations && atxVB.locations[VB.menuLocation];
+		VB.menuName = $.trim(
+			$('#atx-vb-menu-name').val()
+			|| VB.menuName
+			|| (locationData && locationData.menu_name)
+			|| ''
+		);
+		if (!VB.menuName) {
+			$('#atx-vb-menu-name').trigger('focus');
+			$('#atx-vb-status').text('Menu name cannot be empty.').css('color', '#e44');
+			if (VB.notify) VB.notify('Menu name cannot be empty.', 'error');
+			return;
+		}
+
 		$btn.prop('disabled', true).text('Saving...');
 
 		$.ajax({
@@ -26,11 +40,15 @@
 				action: 'atx_vb_save',
 				_wpnonce: atxVB.nonce,
 				menu_location: VB.menuLocation,
+				menu_name: VB.menuName,
 				items: JSON.stringify(VB.items),
 			},
 			success: function (res) {
 				$btn.prop('disabled', false).text('Save Changes');
 				if (res.success) {
+					if (VB.setMenuName) {
+						VB.setMenuName(res.data.menu_name || VB.menuName);
+					}
 					VB.dirty = false;
 					$('#atx-vb-status').text('Saved!').css('color', '#8c8');
 					if (VB.notify) VB.notify('Menu saved.', 'success');
@@ -95,18 +113,37 @@
 		});
 	}
 
-	$('#atx-vb-add-existing-toggle').on('click', function () {
-		let $panel = $('#atx-vb-existing').toggleClass('atx-vb-existing--hidden');
-		if (!$panel.hasClass('atx-vb-existing--hidden')) {
-			$('#atx-vb-existing-search').trigger('focus');
-			searchExistingItems();
-		}
+	VB.openExistingItems = function () {
+		$('#atx-vb').removeClass('atx-vb--tree-closed');
+		window.localStorage.setItem('atx_vb_tree_closed', '0');
+		$('#atx-vb-existing').removeClass('atx-vb-existing--hidden');
+		$('#atx-vb-existing-search').trigger('focus');
+		searchExistingItems();
+	};
+
+	$('#atx-vb-add-existing-toggle, #atx-vb-add-existing-child').on('click', function () {
+		VB.openExistingItems();
 	});
 
 	$('#atx-vb-existing-search').on('input', function () {
 		clearTimeout(existingSearchTimer);
 		existingSearchTimer = setTimeout(searchExistingItems, 250);
 	});
+
+	VB.updateExistingChildActions = function () {
+		let parent = VB.selectedId ? VB.getItem(VB.selectedId) : null;
+		let $buttons = $('.atx-vb-existing__add-child');
+
+		$buttons.prop('hidden', !parent);
+		if (!parent) {
+			return;
+		}
+
+		let parentTitle = (parent.title || 'selected item').replace('|', ' ');
+		$buttons
+			.text('Add to ' + parentTitle)
+			.attr('title', 'Add as a child of ' + parentTitle);
+	};
 
 	function searchExistingItems() {
 		let query = $('#atx-vb-existing-search').val() || '';
@@ -128,8 +165,6 @@
 
 				$results.html('');
 				res.data.items.forEach(item => {
-					let selectedParent = VB.selectedId || 0;
-					let childButton = selectedParent ? `<button type="button" class="button button-small atx-vb-existing__add-child">Add Child</button>` : '';
 					let $row = $(`
 						<div class="atx-vb-existing__item">
 							<div class="atx-vb-existing__meta">
@@ -138,14 +173,20 @@
 							</div>
 							<div class="atx-vb-existing__actions">
 								<button type="button" class="button button-small atx-vb-existing__add-root">Add Root</button>
-								${childButton}
+								<button type="button" class="button button-small atx-vb-existing__add-child" hidden>Add Child</button>
 							</div>
 						</div>
 					`);
 					$row.find('.atx-vb-existing__add-root').on('click', () => addMenuItem(item, 0));
-					$row.find('.atx-vb-existing__add-child').on('click', () => addMenuItem(item, selectedParent));
+					$row.find('.atx-vb-existing__add-child').on('click', function () {
+						let parentId = VB.selectedId || 0;
+						if (parentId) {
+							addMenuItem(item, parentId);
+						}
+					});
 					$results.append($row);
 				});
+				VB.updateExistingChildActions();
 			},
 			error: function () {
 				$results.html('<div class="atx-vb-existing__empty">Could not load items.</div>');

@@ -77,8 +77,8 @@ class Atx_Nav_Menu_Export {
 	public function add_admin_page() {
 		add_submenu_page(
 			'themes.php',
-			__( 'Mega Nav Export/Import', 'crosscraft-child' ),
-			__( 'Mega Nav Export/Import', 'crosscraft-child' ),
+			__( 'Nav Export/Import', 'atx_theme' ),
+			__( 'Nav Export/Import', 'atx_theme' ),
 			Atx_Nav_Menu_Config::get( 'capability' ),
 			'atx-nav-export',
 			array( $this, 'render_admin_page' )

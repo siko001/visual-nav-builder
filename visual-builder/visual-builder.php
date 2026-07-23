@@ -75,8 +75,8 @@ class Atx_Nav_Visual_Builder {
 	public function add_admin_page() {
 		add_submenu_page(
 			'themes.php',
-			__( 'Visual Nav Builder', 'crosscraft-child' ),
-			__( 'Visual Nav Builder', 'crosscraft-child' ),
+			__( 'Visual Nav Builder', 'atx_theme' ),
+			__( 'Visual Nav Builder', 'atx_theme' ),
 			Atx_Nav_Menu_Config::get( 'capability' ),
 			'atx-visual-builder',
 			array( $this, 'render_page' )
@@ -180,13 +180,14 @@ class Atx_Nav_Visual_Builder {
 			wp_send_json_error( 'No menu assigned to ' . $menu_location );
 		}
 
+		$menu       = wp_get_nav_menu_object( $menu_id );
 		$menu_items = wp_get_nav_menu_items( $menu_id );
 		$items = array();
 
 		foreach ( $menu_items as $item ) {
 			$items[] = array(
 				'id'        => $item->ID,
-				'title'     => $item->title,
+				'title'     => wp_specialchars_decode( $item->title, ENT_QUOTES ),
 				'url'       => $item->url,
 				'parent_id' => intval( $item->menu_item_parent ),
 				'position'  => $item->menu_order,
@@ -202,6 +203,7 @@ class Atx_Nav_Visual_Builder {
 		wp_send_json_success( array(
 			'items'         => $items,
 			'menu_id'       => $menu_id,
+			'menu_name'     => $menu ? $menu->name : '',
 			'menu_location' => $menu_location,
 			'extensions'    => self::get_extensions_for_location( $menu_location ),
 		) );
@@ -223,6 +225,26 @@ class Atx_Nav_Visual_Builder {
 		$required_error = self::validate_required_acf_values( $items );
 		if ( $required_error ) {
 			wp_send_json_error( $required_error );
+		}
+
+		$menu      = wp_get_nav_menu_object( $menu_id );
+		$menu_name = sanitize_text_field( wp_unslash( $_POST['menu_name'] ?? '' ) );
+		if ( '' === $menu_name && $menu ) {
+			$menu_name = $menu->name;
+		}
+
+		if ( '' === $menu_name ) {
+			wp_send_json_error( 'Menu name cannot be empty.' );
+		}
+
+		if ( ! $menu || $menu->name !== $menu_name ) {
+			$updated_menu = wp_update_nav_menu_object( $menu_id, array(
+				'menu-name' => $menu_name,
+			) );
+
+			if ( is_wp_error( $updated_menu ) ) {
+				wp_send_json_error( $updated_menu->get_error_message() );
+			}
 		}
 
 		foreach ( $items as $item ) {
@@ -250,7 +272,10 @@ class Atx_Nav_Visual_Builder {
 		// Also save to preview transient
 		set_transient( self::get_preview_transient_key( $menu_location ), $items, 300 );
 
-		wp_send_json_success( 'Saved.' );
+		wp_send_json_success( array(
+			'message'   => 'Saved.',
+			'menu_name' => $menu_name,
+		) );
 	}
 
 	// ── AJAX: Add new item ──
@@ -299,7 +324,7 @@ class Atx_Nav_Visual_Builder {
 		$item = wp_setup_nav_menu_item( get_post( $new_id ) );
 		wp_send_json_success( array(
 			'id'        => $new_id,
-			'title'     => $item ? $item->title : $title,
+			'title'     => wp_specialchars_decode( $item ? $item->title : $title, ENT_QUOTES ),
 			'url'       => $item ? $item->url : ( $url ?: '#' ),
 			'type'      => $item ? $item->type : $type,
 			'object'    => $item ? $item->object : $object,
@@ -328,7 +353,7 @@ class Atx_Nav_Visual_Builder {
 			foreach ( $posts as $post ) {
 				$results[] = array(
 					'id'        => $post->ID,
-					'title'     => get_the_title( $post ),
+					'title'     => wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ),
 					'url'       => get_permalink( $post ),
 					'type'      => 'post_type',
 					'object'    => $post_type,
@@ -359,7 +384,7 @@ class Atx_Nav_Visual_Builder {
 
 				$results[] = array(
 					'id'        => $term->term_id,
-					'title'     => $term->name,
+					'title'     => wp_specialchars_decode( $term->name, ENT_QUOTES ),
 					'url'       => $term_link,
 					'type'      => 'taxonomy',
 					'object'    => $taxonomy,
@@ -637,6 +662,52 @@ class Atx_Nav_Visual_Builder {
 				outline-offset: 4px !important;
 				scroll-margin: 72px !important;
 			}
+			[data-atx-vb-force-menu-open] {
+				display: block !important;
+				visibility: visible !important;
+				opacity: 1 !important;
+				pointer-events: auto !important;
+				transform: none !important;
+				translate: none !important;
+				clip-path: none !important;
+				height: auto !important;
+				max-height: none !important;
+				max-width: none !important;
+				animation: none !important;
+				transition: none !important;
+			}
+			[data-atx-vb-force-menu-open][class*="flex"] {
+				display: flex !important;
+			}
+			[data-atx-vb-force-menu-open] * {
+				animation: none !important;
+				transition: none !important;
+			}
+			[data-atx-vb-force-menu-open] :is(
+				div, nav, ul, ol, a, button, span, p, li, small, strong, em,
+				h1, h2, h3, h4, h5, h6
+			) {
+				opacity: 1 !important;
+				visibility: visible !important;
+				transform: none !important;
+				translate: none !important;
+				clip-path: none !important;
+				filter: none !important;
+			}
+			[data-atx-vb-force-menu-open] :is(
+				[id*="backdrop"], [class*="backdrop"],
+				[id*="overlay"], [class*="overlay"],
+				[id*="background"], [class*="background"],
+				[id*="circle"], [class*="circle"]
+			) {
+				position: absolute !important;
+				inset: 0 !important;
+				width: auto !important;
+				height: auto !important;
+				border-radius: 0 !important;
+				opacity: 1 !important;
+				transform: none !important;
+			}
 		</style>
 		<script id="atx-vb-frontend-preview-bridge">
 			(function () {
@@ -828,16 +899,201 @@ class Atx_Nav_Visual_Builder {
 					return style.display !== 'none' && style.visibility !== 'hidden';
 				}
 
+				let forcedMenuElements = [];
+
+				function clearForcedMenuElements() {
+					forcedMenuElements.forEach(function (element) {
+						element.removeAttribute('data-atx-vb-force-menu-open');
+					});
+					forcedMenuElements = [];
+				}
+
+				function hasMobileMenuIdentity(element) {
+					const identity = [
+						element.id || '',
+						typeof element.className === 'string' ? element.className : '',
+						element.getAttribute('role') || ''
+					].join(' ').toLowerCase();
+
+					return /(mobile|offcanvas|off-canvas|drawer|burger|hamburger|menu-overlay|menu-panel)/.test(identity);
+				}
+
+				function findMobileMenuRoot() {
+					return roots.find(function (root) {
+						let element = root;
+						while (element && element !== document.body) {
+							if (hasMobileMenuIdentity(element)) {
+								return true;
+							}
+							element = element.parentElement;
+						}
+						return false;
+					});
+				}
+
+				function findFixedMenuRoot() {
+					return roots.find(function (root) {
+						let element = root.parentElement;
+						while (element && element !== document.body) {
+							if (window.getComputedStyle(element).position === 'fixed') {
+								return true;
+							}
+							element = element.parentElement;
+						}
+						return false;
+					});
+				}
+
+				function forceOpenSelectedMenu() {
+					clearForcedMenuElements();
+
+					let root = findMobileMenuRoot();
+
+					if (root) {
+						const anotherRootIsVisible = roots.some(function (candidate) {
+							return candidate !== root && isVisible(candidate);
+						});
+						if (anotherRootIsVisible) {
+							return;
+						}
+					} else {
+						if (roots.some(isVisible)) {
+							return;
+						}
+						root = findFixedMenuRoot();
+					}
+
+					if (!root) {
+						return;
+					}
+
+					let element = root;
+					while (element && element !== document.body) {
+						const style = window.getComputedStyle(element);
+						const shouldOpen = element === root
+							|| hasMobileMenuIdentity(element)
+							|| element.hidden
+							|| element.getAttribute('aria-hidden') === 'true'
+							|| style.display === 'none'
+							|| style.visibility === 'hidden'
+							|| parseFloat(style.opacity || '1') === 0
+							|| style.pointerEvents === 'none'
+							|| style.transform !== 'none'
+							|| style.clipPath !== 'none'
+							|| style.height === '0px'
+							|| style.maxHeight === '0px';
+
+						if (shouldOpen) {
+							element.setAttribute('data-atx-vb-force-menu-open', 'true');
+							forcedMenuElements.push(element);
+						}
+
+						element = element.parentElement;
+					}
+				}
+
+				let focusRequest = 0;
+
+				function getScrollElement() {
+					return document.scrollingElement || document.documentElement;
+				}
+
+				function getMaximumScrollTop() {
+					const html = document.documentElement;
+					const body = document.body;
+					const scrollHeight = Math.max(
+						html ? html.scrollHeight : 0,
+						html ? html.offsetHeight : 0,
+						body ? body.scrollHeight : 0,
+						body ? body.offsetHeight : 0
+					);
+
+					return Math.max(0, scrollHeight - window.innerHeight);
+				}
+
+				function isFooterLocation(target) {
+					return /(^|[-_])footer($|[-_])/i.test(config.location || '')
+						|| Boolean(target.closest('footer, [role="contentinfo"]'));
+				}
+
+				function getTargetScrollTop(target) {
+					const maximum = getMaximumScrollTop();
+
+					if (isFooterLocation(target)) {
+						return maximum;
+					}
+
+					const scrollElement = getScrollElement();
+					const current = window.scrollY
+						|| window.pageYOffset
+						|| (scrollElement ? scrollElement.scrollTop : 0)
+						|| 0;
+					const bounds = target.getBoundingClientRect();
+					const centered = current + bounds.top - Math.max(0, (window.innerHeight - bounds.height) / 2);
+
+					return Math.min(maximum, Math.max(0, centered));
+				}
+
+				function forceLocationScroll(target) {
+					if (!target || !target.isConnected) {
+						return;
+					}
+
+					const lenis = window.lenis;
+					if (lenis && typeof lenis.resize === 'function') {
+						lenis.resize();
+					}
+
+					const scrollTop = getTargetScrollTop(target);
+					const scrollElement = getScrollElement();
+
+					if (lenis && typeof lenis.scrollTo === 'function') {
+						if (typeof lenis.start === 'function') {
+							lenis.start();
+						}
+						lenis.scrollTo(scrollTop, { immediate: true, force: true });
+					}
+
+					window.scrollTo({ top: scrollTop, left: 0, behavior: 'auto' });
+					if (scrollElement) {
+						scrollElement.scrollTop = scrollTop;
+					}
+
+					// Keep smooth-scroll libraries aligned with the native scroll position.
+					if (lenis && typeof lenis.scrollTo === 'function') {
+						lenis.scrollTo(scrollTop, { immediate: true, force: true });
+					}
+				}
+
 				function focusLocation() {
 					const target = roots.find(isVisible) || roots[0];
-					if (target) {
-						target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+					if (!target) {
+						return false;
 					}
-					return Boolean(target);
+
+					const request = ++focusRequest;
+					forceLocationScroll(target);
+
+					// Sticky sections, lazy media, and smooth-scroll libraries can change the
+					// document limit after first paint, so correct the focus a few times.
+					[100, 300, 700, 1200, 2000].forEach(function (delay) {
+						window.setTimeout(function () {
+							if (request === focusRequest) {
+								forceLocationScroll(target);
+							}
+						}, delay);
+					});
+
+					return true;
 				}
 
 				window.AtxVBPreview = { focusLocation: focusLocation };
+				forceOpenSelectedMenu();
 				const found = focusLocation();
+				window.addEventListener('resize', function () {
+					forceOpenSelectedMenu();
+					focusLocation();
+				});
 
 				if (window.parent !== window) {
 					window.parent.postMessage({
@@ -1543,10 +1799,10 @@ class Atx_Nav_Visual_Builder {
 
 				$value = $acf[ $field['name'] ] ?? ( $field['default_value'] ?? '' );
 				if ( self::acf_value_is_empty( $value, $field ) ) {
-					$title = sanitize_text_field( $item['title'] ?? __( 'Menu item', 'crosscraft-child' ) );
+					$title = sanitize_text_field( $item['title'] ?? __( 'Menu item', 'atx_theme' ) );
 					return sprintf(
 						/* translators: 1: menu item title, 2: field label */
-						__( '%1$s needs %2$s before saving.', 'crosscraft-child' ),
+						__( '%1$s needs %2$s before saving.', 'atx_theme' ),
 						$title,
 						$field['label'] ?: $field['name']
 					);
@@ -1760,7 +2016,7 @@ class Atx_Nav_Visual_Builder {
 			$obj = new stdClass();
 			$obj->ID               = absint( $item['id'] );
 			$obj->db_id            = absint( $item['id'] );
-			$obj->title            = sanitize_text_field( $item['title'] ?? '' );
+			$obj->title            = wp_specialchars_decode( sanitize_text_field( $item['title'] ?? '' ), ENT_QUOTES );
 			$obj->url              = esc_url_raw( $item['url'] ?? '#' ) ?: '#';
 			$obj->menu_item_parent = absint( $item['parent_id'] ?? 0 );
 			$obj->menu_order       = absint( $item['position'] ?? 0 );

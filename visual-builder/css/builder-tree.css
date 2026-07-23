@@ -130,10 +130,10 @@
 
 .atx-vb-existing__item {
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
+	flex-direction: column;
+	align-items: stretch;
 	gap: 8px;
-	padding: 8px;
+	padding: 10px;
 	border-bottom: 1px solid #f0f0f1;
 }
 
@@ -143,6 +143,7 @@
 
 .atx-vb-existing__meta {
 	min-width: 0;
+	width: 100%;
 }
 
 .atx-vb-existing__meta strong,
@@ -160,9 +161,22 @@
 }
 
 .atx-vb-existing__actions {
-	display: flex;
-	flex-shrink: 0;
-	gap: 4px;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	width: 100%;
+	gap: 6px;
+}
+
+.atx-vb-existing__actions .button {
+	width: 100%;
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.atx-vb-existing__actions:has(.atx-vb-existing__add-child[hidden]) .atx-vb-existing__add-root {
+	grid-column: 1 / -1;
 }
 
 .atx-vb-existing__empty {

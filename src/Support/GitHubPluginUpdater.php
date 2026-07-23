@@ -18,10 +18,60 @@ final class GitHubPluginUpdater
     {
         add_filter('pre_set_site_transient_update_plugins', [$this, 'injectUpdate']);
         add_filter('plugins_api', [$this, 'pluginInfo'], 20, 3);
+        add_filter('upgrader_source_selection', [$this, 'normalizeUpgradeSource'], 10, 4);
         add_filter('plugin_action_links_'.$this->pluginBasename(), [$this, 'pluginActionLinks']);
         add_action('admin_post_'.$this->manualCheckAction(), [$this, 'handleManualUpdateCheck']);
         add_action('admin_notices', [$this, 'manualUpdateNotice']);
         add_action('admin_init', [$this, 'normalizeStoredUpdateTransient']);
+    }
+
+    /**
+     * Keep the current plugin directory name when the plugin was originally
+     * installed from a GitHub source archive such as visual-nav-builder-main.
+     */
+    public function normalizeUpgradeSource(
+        string|\WP_Error $source,
+        string $remoteSource,
+        object $upgrader,
+        array $hookExtra
+    ): string|\WP_Error {
+        if (is_wp_error($source) || ($hookExtra['plugin'] ?? '') !== $this->pluginBasename()) {
+            return $source;
+        }
+
+        $installedDirectory = dirname($this->pluginBasename());
+        $sourcePath = untrailingslashit($source);
+
+        if (
+            $installedDirectory === '.'
+            || basename($sourcePath) === $installedDirectory
+        ) {
+            return $source;
+        }
+
+        global $wp_filesystem;
+
+        if (! $wp_filesystem) {
+            return new \WP_Error(
+                'atx_visual_nav_builder_filesystem_unavailable',
+                'The WordPress filesystem is unavailable for this plugin update.'
+            );
+        }
+
+        $normalizedSource = trailingslashit($remoteSource).$installedDirectory;
+
+        if ($wp_filesystem->exists($normalizedSource)) {
+            $wp_filesystem->delete($normalizedSource, true);
+        }
+
+        if (! $wp_filesystem->move($sourcePath, $normalizedSource, true)) {
+            return new \WP_Error(
+                'atx_visual_nav_builder_source_normalization_failed',
+                'Could not prepare the Visual Nav Builder update package.'
+            );
+        }
+
+        return trailingslashit($normalizedSource);
     }
 
     public function injectUpdate(object $transient): object

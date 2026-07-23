@@ -17,10 +17,18 @@
 			// Find children (items indented under this one)
 			let $children = getChildren($item);
 
-			if ($children.length === 0) return;
+			if ($children.length === 0) {
+				$item.removeClass('atx-collapsed');
+				$item.find('.atx-collapse-btn').remove();
+				return;
+			}
 
 			// Add collapse button if not already there
-			if ($item.find('.atx-collapse-btn').length) return;
+			let $existing = $item.find('.atx-collapse-btn');
+			if ($existing.length) {
+				$existing.html(`${$item.hasClass('atx-collapsed') ? '►' : '▼'} ${$children.length}`);
+				return;
+			}
 
 			let $handle = $item.find('.menu-item-handle');
 			let $btn = $(`<button type="button" class="atx-collapse-btn" title="Collapse/Expand children" style="
@@ -59,6 +67,8 @@
 				}
 			});
 		});
+
+		updateToolbarVisibility();
 	}
 
 	/**
@@ -112,25 +122,43 @@
 		});
 	}
 
+	function updateToolbarVisibility() {
+		let hasHierarchy = $('#menu-to-edit > .menu-item').filter(function () {
+			return getDepth($(this)) > 0;
+		}).length > 0;
+
+		$('#atx-collapse-toolbar').css('display', hasHierarchy ? 'flex' : 'none');
+	}
+
+	function refreshControls() {
+		window.requestAnimationFrame(function () {
+			init();
+			updateToolbarVisibility();
+		});
+	}
+
 	// Init on page load and after menu save/reorder
 	$(document).ready(function () {
 		setTimeout(function () {
-			init();
-
 			// Add Collapse All / Expand All buttons
-			let $toolbar = $('<div style="margin:8px 0;display:flex;gap:6px;"></div>');
+			let $toolbar = $('<div id="atx-collapse-toolbar" style="margin:8px 0;display:none;gap:6px;"></div>');
 			$toolbar.append('<button type="button" class="button button-small" id="atx-collapse-all">Collapse All</button>');
 			$toolbar.append('<button type="button" class="button button-small" id="atx-expand-all">Expand All</button>');
 			$('#menu-to-edit').before($toolbar);
 
 			$('#atx-collapse-all').on('click', collapseAll);
 			$('#atx-expand-all').on('click', expandAll);
+			init();
 		}, 500);
 
-		$(document).on('menu-item-added', init);
+		$(document).on('menu-item-added', refreshControls);
+		$('#menu-to-edit').on('sortstop', refreshControls);
+		$(document).on('click', '#menu-to-edit .item-delete', function () {
+			window.setTimeout(refreshControls, 250);
+		});
 		$(document).ajaxComplete(function (e, xhr, settings) {
 			if (settings.data && settings.data.indexOf('action=menu-locations-save') !== -1) {
-				setTimeout(init, 500);
+				setTimeout(refreshControls, 500);
 			}
 		});
 	});

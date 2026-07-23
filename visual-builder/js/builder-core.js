@@ -9,6 +9,7 @@
 		items: [],
 		selectedId: null,
 		menuId: null,
+		menuName: '',
 		menuLocation: '',
 		extensions: [],
 		dirty: false,
@@ -71,6 +72,7 @@
 					if (res.success) {
 						self.items = res.data.items;
 						self.menuId = res.data.menu_id;
+						self.setMenuName(res.data.menu_name || '');
 						self.menuLocation = res.data.menu_location;
 						self.extensions = res.data.extensions || [];
 						$('#atx-vb-menu-location').val(self.menuLocation);
@@ -83,6 +85,20 @@
 					}
 				}
 			});
+		},
+
+		setMenuName: function (menuName) {
+			this.menuName = menuName || '';
+			$('#atx-vb-menu-name').val(this.menuName);
+
+			const location = atxVB.locations && atxVB.locations[this.menuLocation];
+			const label = location && location.label ? location.label : this.menuLocation;
+			const optionText = this.menuName ? label + ' - ' + this.menuName : label;
+
+			if (location) {
+				location.menu_name = this.menuName;
+			}
+			$('#atx-vb-menu-location option[value="' + this.menuLocation + '"]').text(optionText);
 		},
 
 		getItem: function (id) {
@@ -190,8 +206,16 @@
 				self.selectedId = null;
 				self.dirty = false;
 				$('#atx-vb-editor').hide();
+				if (self.updateExistingChildActions) {
+					self.updateExistingChildActions();
+				}
 				$('#atx-vb-status').text('Loading...').css('color', '#666');
 				self.load();
+			});
+
+			$('#atx-vb-menu-name').on('input', function () {
+				self.menuName = $(this).val();
+				self.markDirty();
 			});
 
 		},
